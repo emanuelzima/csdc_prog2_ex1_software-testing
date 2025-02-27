@@ -37,7 +37,7 @@ public class HomeController implements Initializable {
 
     public List<Movie> allMovies = Movie.initializeMovies();
 
-    private final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
+    public final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
 
     public SortedState sortedState;
 
@@ -125,5 +125,12 @@ public class HomeController implements Initializable {
                 sortBtn.setText("Sort (asc)");
             }
         }
+    }
+    public void setMovieList(List<Movie> movies) {
+        if (movies == null) {
+            throw new IllegalArgumentException("Movie list cannot be null");
+        }
+        this.allMovies = movies;
+        observableMovies.setAll(movies);
     }
 }
