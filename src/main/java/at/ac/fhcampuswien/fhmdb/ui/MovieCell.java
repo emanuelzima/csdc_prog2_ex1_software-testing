@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb.ui;
 
+import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -35,6 +36,7 @@ public class MovieCell extends ListCell<Movie> {
             genre.setText(
                     movie.getGenres() != null
                             ?movie.getGenres().stream()
+                            .filter(g -> g != Genre.ALL)
                             .map(Enum::name)
                             .collect(Collectors.joining(", "))
                             : "No genres available"
