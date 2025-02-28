@@ -128,7 +128,7 @@ class HomeControllerTest {
     }
 
     @Test
-    void filterMovies_WhenQueryMatches_AddsMoviesToObservableMovies() {
+    void applyAllFilters_WhenQueryMatches_AddsMoviesToObservableMovies() {
         // given:
         Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
@@ -140,7 +140,7 @@ class HomeControllerTest {
     }
 
     @Test
-    void filterMovies_WhenQueryDoesNotMatch_ExcludesMoviesFromObservableMovies() {
+    void applyAllFilters_WhenQueryDoesNotMatch_ExcludesMoviesFromObservableMovies() {
         // given:
         Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
@@ -152,7 +152,7 @@ class HomeControllerTest {
     }
 
     @Test
-    void filterMovies_WhenGenreMatches_AddsMoviesToObservableMovies() {
+    void applyAllFilters_WhenGenreMatches_AddsMoviesToObservableMovies() {
         // given:
         Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
@@ -164,7 +164,7 @@ class HomeControllerTest {
     }
 
     @Test
-    void filterMovies_WhenGenreDoesNotMatch_ExcludesMoviesFromObservableMovies() {
+    void applyAllFilters_WhenGenreDoesNotMatch_ExcludesMoviesFromObservableMovies() {
         // given:
         Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));

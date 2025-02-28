@@ -126,6 +126,7 @@ public class HomeController implements Initializable {
             }
         }
     }
+
     public void setMovieList(List<Movie> movies) {
         if (movies == null) {
             throw new IllegalArgumentException("Movie list cannot be null");
