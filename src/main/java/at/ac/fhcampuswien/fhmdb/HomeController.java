@@ -27,6 +27,12 @@ public class HomeController implements Initializable {
     public TextField searchField;
 
     @FXML
+    public TextField releaseYearField;
+
+    @FXML
+    public TextField ratingField;
+
+    @FXML
     public JFXListView movieListView;
 
     @FXML
@@ -34,6 +40,9 @@ public class HomeController implements Initializable {
 
     @FXML
     public JFXButton sortBtn;
+
+    @FXML
+    public JFXButton clearFiltersBtn;
 
     public List<Movie> allMovies = Movie.initializeMovies();
 
@@ -54,6 +63,7 @@ public class HomeController implements Initializable {
         //event handlers
         searchBtn.setOnAction(event -> filterMovies() );
         sortBtn.setOnAction(event -> sortMovies());
+        clearFiltersBtn.setOnAction(event -> initializeState());
     }
 
     public void initializeState() {
@@ -68,12 +78,36 @@ public class HomeController implements Initializable {
     public void filterMovies() {
         String query = searchField.getText();
         Genre genre = (Genre) genreComboBox.getValue();
-        applyAllFilters(query, genre);
+        String releaseYear = releaseYearField.getText();
+        String rating = ratingField.getText();
+        applyAllFilters(query, genre, releaseYear, rating);
     }
 
-    public void applyAllFilters(String query, Genre genre) {
+    public void applyAllFilters(String query, Genre genre, String releaseYear, String rating) {
+        int releaseYearInt = 0;
+        double ratingDouble = 0.0;
+
+        if (releaseYear != null && !releaseYear.trim().isEmpty()) {
+            try {
+                releaseYearInt = Integer.parseInt(releaseYear.trim());
+            } catch (NumberFormatException e) {
+                releaseYearInt = 0;
+            }
+        }
+
+        if (rating != null && !rating.trim().isEmpty()) {
+            try {
+                ratingDouble = Double.parseDouble(rating.trim());
+            } catch (NumberFormatException e) {
+                ratingDouble = 0.0;
+            }
+        }
+
         List<Movie> filtered = filterByGenre(allMovies, genre);
         filtered = filterByQuery(filtered, query);
+        filtered = filterByRelease(filtered, releaseYearInt);
+        filtered = filterByRating(filtered, ratingDouble);
+
         observableMovies.setAll(filtered);
     }
 
@@ -105,6 +139,32 @@ public class HomeController implements Initializable {
         List<Movie> filtered = new ArrayList<>();
         for (Movie movie : movies) {
             if (movie.getGenres().contains(genre)) {
+                filtered.add(movie);
+            }
+        }
+        return filtered;
+    }
+
+    public List<Movie> filterByRelease(List<Movie> movies, int releaseYear) {
+        if (releaseYear <= 0) {
+            return movies;
+        }
+        List<Movie> filtered = new ArrayList<>();
+        for (Movie movie : movies) {
+            if (movie.getReleaseYear() == releaseYear) {
+                filtered.add(movie);
+            }
+        }
+        return filtered;
+    }
+
+    public List<Movie> filterByRating(List<Movie> movies, double rating) {
+        if (rating <= 0) {
+            return movies;
+        }
+        List<Movie> filtered = new ArrayList<>();
+        for (Movie movie : movies) {
+            if (movie.getRating() >= rating) {
                 filtered.add(movie);
             }
         }
