@@ -118,11 +118,11 @@ class HomeControllerTest {
     }
 
     @Test
-    void applyAllFilters_withEmptyQueryAndNullGenre_returnsAllMovies() {
+    void applyAllFilters_withEmptyQueryFields_returnsAllMovies() {
         // given:
         homeController.setMovieList(Movie.initializeMovies());
         // when:
-        homeController.applyAllFilters("", null);
+        homeController.applyAllFilters("", null, "", "");
         // then:
         assertEquals(homeController.allMovies, homeController.observableMovies);
     }
@@ -134,7 +134,7 @@ class HomeControllerTest {
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
         homeController.setMovieList(List.of(movie1, movie2));
         // when:
-        homeController.applyAllFilters("action", null);
+        homeController.applyAllFilters("action movie", null, "", "");
         // then:
         assertTrue(homeController.observableMovies.contains(movie1));
     }
@@ -146,7 +146,7 @@ class HomeControllerTest {
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
         homeController.setMovieList(List.of(movie1, movie2));
         // when:
-        homeController.applyAllFilters("action", null);
+        homeController.applyAllFilters("action movie", null, "", "");
         // then:
         assertFalse(homeController.observableMovies.contains(movie2));
     }
@@ -158,7 +158,7 @@ class HomeControllerTest {
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
         homeController.setMovieList(List.of(movie1, movie2));
         // when:
-        homeController.applyAllFilters(null, Genre.ACTION);
+        homeController.applyAllFilters("", Genre.ACTION, "", "");
         // then:
         assertTrue(homeController.observableMovies.contains(movie1));
     }
@@ -170,7 +170,7 @@ class HomeControllerTest {
         Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
         homeController.setMovieList(List.of(movie1, movie2));
         // when:
-        homeController.applyAllFilters(null, Genre.ACTION);
+        homeController.applyAllFilters("", Genre.ACTION, "", "");
         // then:
         assertFalse(homeController.observableMovies.contains(movie2));
     }
