@@ -294,9 +294,7 @@ class HomeControllerTest {
 
         List<Movie> actual = homeController.getMoviesBetweenYears(movies, start, end);
 
-        assertEquals(expected.size(), actual.size());
         assertTrue(actual.containsAll(expected));
+        assertTrue(expected.containsAll(actual));
     }
-
-
 }
