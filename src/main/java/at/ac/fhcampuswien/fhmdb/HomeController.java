@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb;
 
+import at.ac.fhcampuswien.fhmdb.api.MovieAPI;
 import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import at.ac.fhcampuswien.fhmdb.models.SortedState;
@@ -13,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,7 +46,7 @@ public class HomeController implements Initializable {
     @FXML
     public JFXButton clearFiltersBtn;
 
-    public List<Movie> allMovies = Movie.initializeMovies();
+    public List<Movie> allMovies;
 
     public final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
 
@@ -67,6 +69,12 @@ public class HomeController implements Initializable {
     }
 
     public void initializeState() {
+        try{
+            allMovies = MovieAPI.getMovies(null, null, null, null);
+        }catch (IOException e)
+        {
+            System.err.println("An error happened while loading movies: " + e.getMessage());
+        }
         observableMovies.clear();
         observableMovies.addAll(allMovies);
         sortedState = SortedState.NONE;
