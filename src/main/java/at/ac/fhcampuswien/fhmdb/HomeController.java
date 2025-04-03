@@ -117,7 +117,7 @@ public class HomeController implements Initializable {
     }
 
     public void applyAllFilters(String query, Genre genre, String releaseYear, String rating) {
-        int releaseYearInt = 0;
+        /*int releaseYearInt = 0;
         double ratingDouble = 0.0;
 
         if (releaseYear != null && !releaseYear.trim().isEmpty()) {
@@ -136,13 +136,13 @@ public class HomeController implements Initializable {
             }
         }
 
-        /*List<Movie> filtered = filterByGenre(allMovies, genre);
+        List<Movie> filtered = filterByGenre(allMovies, genre);
         filtered = filterByQuery(filtered, query);
         filtered = filterByRelease(filtered, releaseYearInt);
         filtered = filterByRating(filtered, ratingDouble);*/
 
         try{
-            observableMovies.setAll(MovieAPI.getMovies(query, Objects.toString(genre, null), releaseYear, Double.toString(ratingDouble)));
+            observableMovies.setAll(MovieAPI.getMovies(query, Objects.toString(genre, null), releaseYear, rating));
         }catch (IOException e)
         {
             System.err.println("An error happened while loading movies: " + e.getMessage());
