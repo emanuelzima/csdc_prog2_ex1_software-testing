@@ -67,7 +67,7 @@ public class HomeController implements Initializable {
         //event handlers
         searchBtn.setOnAction(event -> filterMovies() );
         sortBtn.setOnAction(event -> sortMovies());
-        clearFiltersBtn.setOnAction(event -> initializeState());
+        clearFiltersBtn.setOnAction(event -> clearFilters());
     }
 
     public void initializeState() {
@@ -84,24 +84,28 @@ public class HomeController implements Initializable {
             sortBtn.setText("Sort (asc)");
         }
 
-        System.out.println("getMostPopularActor");
-        System.out.println(getMostPopularActor(allMovies));
+//        System.out.println("*** getMostPopularActor ***");
+//        System.out.println("The most popular actor is: " + getMostPopularActor(allMovies));
+//
+//        System.out.println("*** getLongestMovieTitle ***");
+//        System.out.println("The longest movie title is: " + getLongestMovieTitle(allMovies));
+//
+//        System.out.println("*** count movies from Christopher Nolan ***");
+//        System.out.println("Christopher Nolan made " + countMoviesFrom(allMovies, " Christopher Nolan") + "movies.");
+//
+//        System.out.println("*** getMoviesBetweenYears ***");
+//        List<Movie> between = getMoviesBetweenYears(allMovies, 2000, 2019);
+//        System.out.println("There are " + between.size() + " movies between 2000 and 2019.");
+//        System.out.println("Following movies were released between 2000 and 2019:");
+//        System.out.println(between.stream().map(Objects::toString).collect(Collectors.joining(", ")));
+    }
 
-        System.out.println("getLongestMovieTitle");
-        System.out.println(getLongestMovieTitle(allMovies));
-
-        System.out.println("count movies from Christopher Nolan");
-        System.out.println(countMoviesFrom(allMovies, "Christopher Nolan"));
-
-        System.out.println("getMoviesBetweenYears");
-        List<Movie> between = getMoviesBetweenYears(allMovies, 1994, 2000);
-        System.out.println(between.size());
-        System.out.println(between.stream().map(Objects::toString).collect(Collectors.joining(", ")));
-
+    public void clearFilters() {
         genreComboBox.getSelectionModel().clearSelection();
         searchField.clear();
         releaseYearField.clear();
         ratingField.clear();
+        initializeState();
     }
 
     public void filterMovies() {
