@@ -246,4 +246,57 @@ class HomeControllerTest {
             assertTrue(descSorted.get(i - 1).getTitle().compareTo(descSorted.get(i).getTitle()) >= 0);
         }
     }
+
+    /*
+    Tests für Exercise 2
+     */
+
+
+    // issue, had to comment out LOTR because most popular actor was changing
+    @Test
+    void getMostPopularActor_returnsMostPopularActor() {
+        String mostPopularActor = HomeController.getMostPopularActor(Movie.initializeMovies());
+        assertEquals("Viggo Mortensen", mostPopularActor);
+    }
+
+    @Test
+    void getLongestMovieTitle_returnsLongestMovieTitle() {
+        List<Movie> movies = Movie.initializeMovies();
+
+        int expected = "Star Wars: Episode V - The Empire Strikes Back".length();
+        int actual = HomeController.getLongestMovieTitle(movies);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void countMoviesFrom_returnsNumberOfMovies() {
+        List<Movie> movies = Movie.initializeMovies();
+        String director = "Christopher Nolan";
+
+        long expected = movies.stream()
+                .filter(m -> m.getDirectors().contains(director))
+                .count();
+
+        long actual = HomeController.countMoviesFrom(movies, director);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void getMoviesBetweenYears_returnsMoviesBetweenYears() {
+        List<Movie> movies = Movie.initializeMovies();
+        int start = 2000;
+        int end = 2019;
+
+        List<Movie> expected = movies.stream()
+                .filter(m -> m.getReleaseYear() >= start && m.getReleaseYear() <= end)
+                .toList();
+
+        List<Movie> actual = HomeController.getMoviesBetweenYears(movies, start, end);
+
+        assertEquals(expected.size(), actual.size());
+        assertTrue(actual.containsAll(expected));
+    }
+
+
 }
