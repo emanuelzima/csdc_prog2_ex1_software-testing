@@ -97,6 +97,11 @@ public class HomeController implements Initializable {
         List<Movie> between = getMoviesBetweenYears(allMovies, 1994, 2000);
         System.out.println(between.size());
         System.out.println(between.stream().map(Objects::toString).collect(Collectors.joining(", ")));
+
+        genreComboBox.getSelectionModel().clearSelection();
+        searchField.clear();
+        releaseYearField.clear();
+        ratingField.clear();
     }
 
     public void filterMovies() {
@@ -127,15 +132,21 @@ public class HomeController implements Initializable {
             }
         }
 
-        List<Movie> filtered = filterByGenre(allMovies, genre);
+        /*List<Movie> filtered = filterByGenre(allMovies, genre);
         filtered = filterByQuery(filtered, query);
         filtered = filterByRelease(filtered, releaseYearInt);
-        filtered = filterByRating(filtered, ratingDouble);
+        filtered = filterByRating(filtered, ratingDouble);*/
 
-        observableMovies.setAll(filtered);
+        try{
+            observableMovies.setAll(MovieAPI.getMovies(query, Objects.toString(genre, null), releaseYear, Double.toString(ratingDouble)));
+        }catch (IOException e)
+        {
+            System.err.println("An error happened while loading movies: " + e.getMessage());
+        }
+
     }
 
-    public List<Movie> filterByQuery(List<Movie> movies, String query) {
+    /*public List<Movie> filterByQuery(List<Movie> movies, String query) {
         if (movies == null) {
             throw new IllegalArgumentException("Movie list cannot be null");
         }
@@ -193,7 +204,7 @@ public class HomeController implements Initializable {
             }
         }
         return filtered;
-    }
+    }*/
 
     public void sortMovies() {
         if (sortedState == SortedState.NONE || sortedState == SortedState.DESCENDING) {
