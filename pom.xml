@@ -70,6 +70,20 @@
             <artifactId>jfoenix</artifactId>
             <version>9.0.10</version>
         </dependency>
+
+
+        <!-- ORMLite JDBC -->
+        <dependency>
+            <groupId>com.j256.ormlite</groupId>
+            <artifactId>ormlite-jdbc</artifactId>
+            <version>6.1</version>
+        </dependency>
+        <!-- H2 Database -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+        </dependency>
     </dependencies>
 
     <build>
