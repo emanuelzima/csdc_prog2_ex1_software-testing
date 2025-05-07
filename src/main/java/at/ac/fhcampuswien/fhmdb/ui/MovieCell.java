@@ -26,6 +26,13 @@ public class MovieCell extends ListCell<Movie> {
         super();
 
         actionBtn.setText(buttonLabel);
+
+        if (buttonLabel.equalsIgnoreCase("Add to Watchlist")) {
+            actionBtn.getStyleClass().add("background-green");
+        } else if (buttonLabel.equalsIgnoreCase("Remove")) {
+            actionBtn.getStyleClass().add("background-red");
+        }
+
         actionBtn.setOnMouseClicked(mouseEvent -> {
             if (clickHandler != null && getItem() != null) {
                 clickHandler.onClick(getItem());

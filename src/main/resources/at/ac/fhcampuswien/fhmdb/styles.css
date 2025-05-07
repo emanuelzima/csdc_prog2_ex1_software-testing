@@ -1,6 +1,7 @@
 
 .background-yellow {
     -fx-background-color: #f5c518;
+    -fx-cursor: hand;
 }
 
 .background-black {
@@ -13,6 +14,7 @@
 
 .text-yellow {
     -fx-text-fill: #f5c518;
+    -fx-font-weight: bold;
 }
 
 .text-white {
@@ -37,4 +39,18 @@
 .filter-combo-box {
     -fx-background-color: white;
     -fx-text-fill: #ffffff;
+}
+
+.background-green {
+    -fx-background-color: green;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.background-red {
+    -fx-background-color: red;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
 }

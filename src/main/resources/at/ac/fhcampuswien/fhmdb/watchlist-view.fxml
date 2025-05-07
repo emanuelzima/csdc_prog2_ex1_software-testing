@@ -10,11 +10,13 @@
 
 <VBox prefHeight="331.0" prefWidth="570.0" xmlns="http://javafx.com/javafx/15.0.1"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="at.ac.fhcampuswien.fhmdb.WatchlistController">
+      fx:controller="at.ac.fhcampuswien.fhmdb.WatchlistController"
+      stylesheets="@styles.css"
+      styleClass="background-black">
 
-    <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: black;">
+    <HBox alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="347.0" spacing="20.0" style="-fx-background-color: black;">
         <padding>
-            <Insets top="10" bottom="10" left="10" right="10"/>
+            <Insets bottom="7.0" left="10.0" top="7.0" />
         </padding>
         <children>
             <Label style="-fx-background-color: F5C518;" text="FHMDb">
@@ -25,26 +27,26 @@
                     <Insets left="2.0" right="2.0" />
                 </padding>
             </Label>
-            <Label styleClass="text-white" stylesheets="@styles.css" text="Welcome to FHMDb!" />
+            <Label styleClass="text-white" text="Welcome to FHMDb!" />
             <JFXButton fx:id="homeBtn"
                        text="Home"
-                       styleClass="background-yellow"
-                       stylesheets="@styles.css" />
+                       styleClass="background-yellow" />
         </children>
     </HBox>
 
-    <Label text="My Watchlist" styleClass="text-yellow" stylesheets="@styles.css">
-        <font>
-            <Font name="Calibri Bold" size="24.0"/>
-        </font>
-        <VBox.margin>
-            <Insets left="10.0" top="10.0"/>
-        </VBox.margin>
-    </Label>
+    <HBox alignment="CENTER">
+        <Label text="My Watchlist 🍿" styleClass="text-white">
+            <font>
+                <Font name="Calibri Bold" size="24.0"/>
+            </font>
+            <padding>
+                <Insets top="15" bottom="15"/>
+            </padding>
+        </Label>
+    </HBox>
 
     <JFXListView fx:id="movieListView"
                  styleClass="background-black"
                  style="-fx-background-color: black;"
-                 VBox.vgrow="ALWAYS"
-                 stylesheets="@styles.css" />
+                 VBox.vgrow="ALWAYS" />
 </VBox>
