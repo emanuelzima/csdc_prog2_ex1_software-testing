@@ -3,9 +3,10 @@ package at.ac.fhcampuswien.fhmdb.models;
 import com.j256.ormlite.dao.Dao;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class WatchlistRepository {
-    private Dao<WatchlistMovieEntity, Long> dao;
+    private final Dao<WatchlistMovieEntity, Long> dao;
 
     public WatchlistRepository(Dao<WatchlistMovieEntity, Long> dao) {
         this.dao = dao;
@@ -31,5 +32,12 @@ public class WatchlistRepository {
             count += dao.delete(entry);
         }
         return count;
+    }
+
+    public List<String> getAllWatchlistApiIds() throws SQLException {
+        List<WatchlistMovieEntity> entries = dao.queryForAll();
+        return entries.stream()
+                .map(WatchlistMovieEntity::getApiId)
+                .collect(Collectors.toList());
     }
 } 

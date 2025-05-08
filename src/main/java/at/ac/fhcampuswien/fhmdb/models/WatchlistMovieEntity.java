@@ -16,4 +16,10 @@ public class WatchlistMovieEntity {
     public String getApiId() {
         return apiId;
     }
-} 
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+}
+

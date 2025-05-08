@@ -1,9 +1,7 @@
 package at.ac.fhcampuswien.fhmdb;
 
 import at.ac.fhcampuswien.fhmdb.api.MovieAPI;
-import at.ac.fhcampuswien.fhmdb.models.Genre;
-import at.ac.fhcampuswien.fhmdb.models.Movie;
-import at.ac.fhcampuswien.fhmdb.models.SortedState;
+import at.ac.fhcampuswien.fhmdb.models.*;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -17,6 +15,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import at.ac.fhcampuswien.fhmdb.models.Database;
 
 import java.io.IOException;
 import java.net.URL;
@@ -76,10 +75,33 @@ public class HomeController implements Initializable {
     }
 
     public void initializeState() {
+        Database db = new Database();
+
         try {
-            allMovies = MovieAPI.getMovies(null, null, null, null);
-        } catch (IOException e) {
-            System.err.println("An error happened while loading movies: " + e.getMessage());
+            db.createConnectionsSource();
+            db.createTables();
+            db.initializeDaos();
+
+            MovieRepository repo = new MovieRepository(db.getMovieDao());
+            repo.removeDuplicateMovies();
+            List<MovieEntity> cachedMovies = repo.getAllMovies();
+
+            if (cachedMovies.isEmpty()) {
+                try {
+                    allMovies = MovieAPI.getMovies(null, null, null, null);
+                    repo.addAllMovies(allMovies);
+                    System.out.println("Filme von der API geladen und in DB gecached.");
+                } catch (IOException e) {
+                    System.err.println("API nicht erreichbar - Filme werden aus DB geladen.");
+                    allMovies = new ArrayList<>();
+                }
+            } else {
+                System.out.println("Filme aus Datenbank geladen.");
+                allMovies = MovieEntity.toMovies(cachedMovies);
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Zugriff auf die Datenbank: " + e.getMessage());
+            allMovies = new ArrayList<>();
         }
 
         observableMovies.clear();
@@ -95,7 +117,26 @@ public class HomeController implements Initializable {
 
     private final ClickEventHandler<Movie> onAddToWatchlistClicked = (clickedMovie) -> {
         // TODO: Watchlist-Logik zum Hinzufügen von Filmen implementieren
-        System.out.println("Add to watchlist clicked: " + clickedMovie.getTitle());
+
+        try {
+            WatchlistMovieEntity entity = new WatchlistMovieEntity();
+            entity.setApiId(clickedMovie.getId());
+
+            Database db = new Database();
+            db.createConnectionsSource();
+            db.initializeDaos();
+
+            WatchlistRepository repo = new WatchlistRepository(db.getWatchlistDao());
+            int added = repo.addToWatchlist(entity);
+
+            if (added > 0) {
+                System.out.println(clickedMovie.getTitle() + " wurde zur Watchlist hinzugefügt.");
+            } else {
+                System.out.println(clickedMovie.getTitle() + " ist bereits auf der Watchlist.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     };
 
     public void clearFilters() {

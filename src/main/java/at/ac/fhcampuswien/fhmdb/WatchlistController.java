@@ -1,6 +1,6 @@
 package at.ac.fhcampuswien.fhmdb;
 
-import at.ac.fhcampuswien.fhmdb.models.Movie;
+import at.ac.fhcampuswien.fhmdb.models.*;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -12,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.h2.store.Data;
 
 import java.io.IOException;
 import java.net.URL;
@@ -29,15 +30,50 @@ public class WatchlistController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        movieListView.setItems(watchlistMovies);
-        movieListView.setCellFactory(listView -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
+        try {
+            Database db = new Database();
+            db.createConnectionsSource();
+            db.createTables();
+            db.initializeDaos();
 
+            WatchlistRepository watchlistRepo = new WatchlistRepository(db.getWatchlistDao());
+            MovieRepository movieRepo = new MovieRepository(db.getMovieDao());
+
+            var apiIds = watchlistRepo.getAllWatchlistApiIds();
+
+            var movieEntities = movieRepo.getMoviesByApiIds(apiIds);
+
+            var movies = MovieEntity.toMovies(movieEntities);
+
+            watchlistMovies.addAll(movies);
+
+            movieListView.setItems(watchlistMovies);
+            movieListView.setCellFactory(ListView -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         homeBtn.setOnAction(event -> switchToHomeView());
     }
 
     private final ClickEventHandler<Movie> onRemoveFromWatchlistClicked = (clickedMovie) -> {
         // TODO: Watchlist-Logik zum Entfernen von Filmen hinzufügen.
-        System.out.println("Remove from watchlist clicked: " + clickedMovie.getTitle());
+        try {
+            Database db = new Database();
+            db.createConnectionsSource();
+            db.initializeDaos();
+
+            WatchlistRepository repo = new WatchlistRepository(db.getWatchlistDao());
+            int removed = repo.removeFromWatchlist(clickedMovie.getId());
+
+            if (removed > 0) {
+                System.out.println(clickedMovie.getTitle() + " wurde von der Watchlist entfernt.");
+                watchlistMovies.remove(clickedMovie);
+            } else {
+                System.out.println("Film nicht auf der Watchlist gefunden.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     };
 
     private void switchToHomeView() {
