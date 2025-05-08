@@ -1,6 +1,8 @@
 package at.ac.fhcampuswien.fhmdb;
 
 import at.ac.fhcampuswien.fhmdb.api.MovieAPI;
+import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
+import at.ac.fhcampuswien.fhmdb.exceptions.MovieApiException;
 import at.ac.fhcampuswien.fhmdb.models.*;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
@@ -87,20 +89,15 @@ public class HomeController implements Initializable {
             List<MovieEntity> cachedMovies = repo.getAllMovies();
 
             if (cachedMovies.isEmpty()) {
-                try {
-                    allMovies = MovieAPI.getMovies(null, null, null, null);
-                    repo.addAllMovies(allMovies);
-                    System.out.println("Filme von der API geladen und in DB gecached.");
-                } catch (IOException e) {
-                    System.err.println("API nicht erreichbar - Filme werden aus DB geladen.");
-                    allMovies = new ArrayList<>();
-                }
+                allMovies = MovieAPI.getMovies(null, null, null, null);
+                repo.addAllMovies(allMovies);
+                System.out.println("Filme von der API geladen und in DB gecached.");
             } else {
                 System.out.println("Filme aus Datenbank geladen.");
                 allMovies = MovieEntity.toMovies(cachedMovies);
             }
-        } catch (Exception e) {
-            System.err.println("Fehler beim Zugriff auf die Datenbank: " + e.getMessage());
+        } catch (DatabaseException | MovieApiException e) {
+            System.err.println("API Fehler: " + e.getMessage());
             allMovies = new ArrayList<>();
         }
 
@@ -134,7 +131,7 @@ public class HomeController implements Initializable {
             } else {
                 System.out.println(clickedMovie.getTitle() + " ist bereits auf der Watchlist.");
             }
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             e.printStackTrace();
         }
     };
@@ -163,7 +160,7 @@ public class HomeController implements Initializable {
                     releaseYear,
                     rating
             ));
-        } catch (IOException e) {
+        } catch (MovieApiException e) {
             System.err.println("An error happened while loading movies: " + e.getMessage());
         }
     }

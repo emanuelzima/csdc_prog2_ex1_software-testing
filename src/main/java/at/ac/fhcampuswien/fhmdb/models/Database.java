@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
+import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
@@ -15,17 +16,28 @@ public class Database {
     private Dao<MovieEntity, Long> movieDao;
     private Dao<WatchlistMovieEntity, Long> watchlistDao;
 
-    public void createConnectionsSource() throws SQLException {
-        conn = new JdbcConnectionSource(DB_URL, username, password);
+    public void createConnectionsSource() throws DatabaseException {
+        try
+        {
+            conn = new JdbcConnectionSource(DB_URL, username, password);
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
     }
 
     public ConnectionSource getConnectionSource() {
         return conn;
     }
 
-    public void createTables() throws SQLException {
-        TableUtils.createTableIfNotExists(conn, MovieEntity.class);
-        TableUtils.createTableIfNotExists(conn, WatchlistMovieEntity.class);
+    public void createTables() throws DatabaseException {
+        try
+        {
+            TableUtils.createTableIfNotExists(conn, MovieEntity.class);
+            TableUtils.createTableIfNotExists(conn, WatchlistMovieEntity.class);
+        }catch (SQLException e)
+        {
+            throw new DatabaseException(e);
+        }
     }
 
     public Dao<WatchlistMovieEntity, Long> getWatchlistDao() {
@@ -37,8 +49,14 @@ public class Database {
     }
 
     // Initialize DAOs after connection is established
-    public void initializeDaos() throws SQLException {
-        movieDao = com.j256.ormlite.dao.DaoManager.createDao(conn, MovieEntity.class);
-        watchlistDao = com.j256.ormlite.dao.DaoManager.createDao(conn, WatchlistMovieEntity.class);
+    public void initializeDaos() throws DatabaseException {
+        try
+        {
+            movieDao = com.j256.ormlite.dao.DaoManager.createDao(conn, MovieEntity.class);
+            watchlistDao = com.j256.ormlite.dao.DaoManager.createDao(conn, WatchlistMovieEntity.class);
+        }catch (SQLException e)
+        {
+            throw new DatabaseException(e);
+        }
     }
 } 

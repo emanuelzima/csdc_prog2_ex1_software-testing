@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb.api;
 
+import at.ac.fhcampuswien.fhmdb.exceptions.MovieApiException;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -15,7 +16,7 @@ public class MovieAPI {
     private static final String USER_AGENT = "http.agent";
 
     // Ruft die API mit optionalen Parametern auf und liefert eine Liste von Movies zurück
-    public static List<Movie> getMovies(String query, String genre, String releaseYear, String ratingFrom) throws IOException {
+    public static List<Movie> getMovies(String query, String genre, String releaseYear, String ratingFrom) throws MovieApiException {
         // 1) URL dynamisch aufbauen
         HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(BASE_URL)).newBuilder();
 
@@ -60,6 +61,9 @@ public class MovieAPI {
                 return new ArrayList<>();
             }
             return movies;
+        }catch (IOException e)
+        {
+            throw new MovieApiException(e);
         }
     }
 }

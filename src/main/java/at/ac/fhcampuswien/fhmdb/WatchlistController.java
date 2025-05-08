@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb;
 
+import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
 import at.ac.fhcampuswien.fhmdb.models.*;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
@@ -49,7 +50,7 @@ public class WatchlistController implements Initializable {
 
             movieListView.setItems(watchlistMovies);
             movieListView.setCellFactory(ListView -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             e.printStackTrace();
         }
         homeBtn.setOnAction(event -> switchToHomeView());
@@ -71,7 +72,7 @@ public class WatchlistController implements Initializable {
             } else {
                 System.out.println("Film nicht auf der Watchlist gefunden.");
             }
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             e.printStackTrace();
         }
     };
