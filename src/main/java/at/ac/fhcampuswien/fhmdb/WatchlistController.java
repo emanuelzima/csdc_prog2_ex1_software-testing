@@ -32,10 +32,8 @@ public class WatchlistController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            Database db = new Database();
-            db.createConnectionsSource();
-            db.createTables();
-            db.initializeDaos();
+            Database db = Database.getInstance();
+            db.initialize();
 
             WatchlistRepository watchlistRepo = new WatchlistRepository(db.getWatchlistDao());
             MovieRepository movieRepo = new MovieRepository(db.getMovieDao());
@@ -59,9 +57,8 @@ public class WatchlistController implements Initializable {
     private final ClickEventHandler<Movie> onRemoveFromWatchlistClicked = (clickedMovie) -> {
         // TODO: Watchlist-Logik zum Entfernen von Filmen hinzufügen.
         try {
-            Database db = new Database();
-            db.createConnectionsSource();
-            db.initializeDaos();
+            Database db = Database.getInstance();
+            db.initialize();
 
             WatchlistRepository repo = new WatchlistRepository(db.getWatchlistDao());
             int removed = repo.removeFromWatchlist(clickedMovie.getId());

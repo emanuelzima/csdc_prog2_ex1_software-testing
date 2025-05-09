@@ -8,6 +8,7 @@ import com.j256.ormlite.table.TableUtils;
 import java.sql.SQLException;
 
 public class Database {
+    private static Database instance;
     private static final String DB_URL = "jdbc:h2:./database";
     private static final String username = "sa";
     private static final String password = "";
@@ -16,6 +17,23 @@ public class Database {
     private Dao<MovieEntity, Long> movieDao;
     private Dao<WatchlistMovieEntity, Long> watchlistDao;
 
+    private Database() {} // privater Konstruktor
+
+    public static Database getInstance() {
+        if (instance == null) {
+            instance = new Database();
+        }
+        return instance;
+    }
+
+    public void initialize() throws DatabaseException {
+        if (conn == null) {
+            createConnectionsSource();
+            createTables();
+            initializeDaos();
+        }
+    }
+
     public void createConnectionsSource() throws DatabaseException {
         try
         {
@@ -23,10 +41,6 @@ public class Database {
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
-    }
-
-    public ConnectionSource getConnectionSource() {
-        return conn;
     }
 
     public void createTables() throws DatabaseException {

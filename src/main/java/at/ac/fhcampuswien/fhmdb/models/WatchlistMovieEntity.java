@@ -11,8 +11,6 @@ public class WatchlistMovieEntity {
     @DatabaseField
     private String apiId;
 
-    // Getters and setters omitted for brevity
-
     public String getApiId() {
         return apiId;
     }

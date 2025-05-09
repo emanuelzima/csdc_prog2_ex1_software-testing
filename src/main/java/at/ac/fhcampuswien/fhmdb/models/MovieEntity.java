@@ -37,7 +37,6 @@ public class MovieEntity {
     @DatabaseField
     private double rating;
 
-    // Method signatures from the diagram
     public static String genresToString(List<Genre> genres) {
         return genres.stream().map(Enum::name).collect(Collectors.joining(","));
     }

@@ -77,12 +77,10 @@ public class HomeController implements Initializable {
     }
 
     public void initializeState() {
-        Database db = new Database();
+        Database db = Database.getInstance();
 
         try {
-            db.createConnectionsSource();
-            db.createTables();
-            db.initializeDaos();
+            db.initialize();
 
             MovieRepository repo = new MovieRepository(db.getMovieDao());
             repo.removeDuplicateMovies();
@@ -119,9 +117,8 @@ public class HomeController implements Initializable {
             WatchlistMovieEntity entity = new WatchlistMovieEntity();
             entity.setApiId(clickedMovie.getId());
 
-            Database db = new Database();
-            db.createConnectionsSource();
-            db.initializeDaos();
+            Database db = Database.getInstance();
+            db.initialize();
 
             WatchlistRepository repo = new WatchlistRepository(db.getWatchlistDao());
             int added = repo.addToWatchlist(entity);
