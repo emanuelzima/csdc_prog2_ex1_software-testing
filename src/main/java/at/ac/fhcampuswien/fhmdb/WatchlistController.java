@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
+
 public class WatchlistController implements Initializable {
 
     @FXML
@@ -49,7 +51,10 @@ public class WatchlistController implements Initializable {
             movieListView.setItems(watchlistMovies);
             movieListView.setCellFactory(ListView -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
         } catch (DatabaseException e) {
-            e.printStackTrace();
+            showError(movieListView.getScene().getWindow(),
+                    "Database Error",
+                    "Failed to load watchlist",
+                    e.getMessage());
         }
         homeBtn.setOnAction(event -> switchToHomeView());
     }
@@ -67,10 +72,18 @@ public class WatchlistController implements Initializable {
                 System.out.println(clickedMovie.getTitle() + " wurde von der Watchlist entfernt.");
                 watchlistMovies.remove(clickedMovie);
             } else {
-                System.out.println("Film nicht auf der Watchlist gefunden.");
+                showError(
+                        movieListView.getScene().getWindow(),
+                        "Remove Error",
+                        "Movie not on watchlist",
+                        "Could not find " + clickedMovie.getTitle() + " in your watchlist."
+                );
             }
         } catch (DatabaseException e) {
-            e.printStackTrace();
+            showError(movieListView.getScene().getWindow(),
+                    "Database Error",
+                    "Failed to remove movie from watchlist",
+                    e.getMessage());
         }
     };
 
@@ -82,7 +95,10 @@ public class WatchlistController implements Initializable {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.err.println("Could not load home-view.fxml: " + e.getMessage());
+            showError(movieListView.getScene().getWindow(),
+                    "Load Error",
+                    "Could not open home view",
+                    e.getMessage());
         }
     }
 }

@@ -18,6 +18,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import at.ac.fhcampuswien.fhmdb.models.Database;
+import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
 
 import java.io.IOException;
 import java.net.URL;
@@ -95,7 +96,10 @@ public class HomeController implements Initializable {
                 allMovies = MovieEntity.toMovies(cachedMovies);
             }
         } catch (DatabaseException | MovieApiException e) {
-            System.err.println("API Fehler: " + e.getMessage());
+            showError(movieListView.getScene().getWindow(),
+                    "Initialization Error",
+                    "Failed to load movie data",
+                    e.getMessage());
             allMovies = new ArrayList<>();
         }
 
@@ -128,7 +132,10 @@ public class HomeController implements Initializable {
                 System.out.println(clickedMovie.getTitle() + " ist bereits auf der Watchlist.");
             }
         } catch (DatabaseException e) {
-            e.printStackTrace();
+            showError(movieListView.getScene().getWindow(),
+                    "Database Error",
+                    "Could not add movie to watchlist",
+                    e.getMessage());
         }
     };
 
@@ -157,7 +164,12 @@ public class HomeController implements Initializable {
                     rating
             ));
         } catch (MovieApiException e) {
-            System.err.println("An error happened while loading movies: " + e.getMessage());
+            showError(
+                    movieListView.getScene().getWindow(),
+                    "API Error",
+                    "Failed to load movies",
+                    e.getMessage()
+            );
         }
     }
 
@@ -218,7 +230,10 @@ public class HomeController implements Initializable {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.err.println("Could not load watchlist-view.fxml: " + e.getMessage());
+            showError(movieListView.getScene().getWindow(),
+                    "Load Error",
+                    "Could not open watchlist view",
+                    e.getMessage());
         }
     }
 }
