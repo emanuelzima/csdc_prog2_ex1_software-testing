@@ -39,7 +39,7 @@ public class Database {
         {
             conn = new JdbcConnectionSource(DB_URL, username, password);
         } catch (SQLException e) {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es wurde kein Treiber für die zu erstellende Datenbank gefunden.",e);
         }
     }
 
@@ -50,7 +50,7 @@ public class Database {
             TableUtils.createTableIfNotExists(conn, WatchlistMovieEntity.class);
         }catch (SQLException e)
         {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es ist ein Problem bei dem Erstellen der Tabellen der Datenbank aufgetreten.", e);
         }
     }
 
@@ -70,7 +70,7 @@ public class Database {
             watchlistDao = com.j256.ormlite.dao.DaoManager.createDao(conn, WatchlistMovieEntity.class);
         }catch (SQLException e)
         {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es ist ein Fehler bei dem Speichern passiert.", e);
         }
     }
 } 

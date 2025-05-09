@@ -36,7 +36,7 @@ public class WatchlistRepository {
             return 0;
         }catch (SQLException e)
         {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es ist ein Fehler bei dem Speichern von Daten aufgetreten.", e);
         }
     }
 
@@ -51,7 +51,7 @@ public class WatchlistRepository {
             return count;
         }catch (SQLException e)
         {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es ist ein Fehler bei dem Löschen von Daten passiert.", e);
         }
     }
 
@@ -64,7 +64,7 @@ public class WatchlistRepository {
                     .collect(Collectors.toList());
         }catch (SQLException e)
         {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es ist ein Fehler bei dem Laden von Daten aufgetreten.", e);
         }
     }
 } 

@@ -26,28 +26,6 @@ public class MovieRepository {
         }
     }
 
-    public int removeAll() throws DatabaseException {
-        try
-        {
-            return dao.deleteBuilder().delete();
-        }catch (SQLException e)
-        {
-            throw new DatabaseException(e);
-        }
-
-    }
-
-    public MovieEntity getMovie(Long id) throws DatabaseException {
-        try
-        {
-            return dao.queryForId(id);
-        }catch (SQLException e)
-        {
-            throw new DatabaseException(e);
-        }
-
-    }
-
     public int addAllMovies(List<Movie> movies) throws DatabaseException {
         int count = 0;
         try
@@ -94,24 +72,30 @@ public class MovieRepository {
         try
         {
             List<MovieEntity> all = dao.queryForAll();
-            Set<String> seenApiIds = new HashSet<>();
-            for (MovieEntity movie : all) {
-                String apiId = movie.getApiId();
+            try
+            {
+                Set<String> seenApiIds = new HashSet<>();
+                for (MovieEntity movie : all) {
+                    String apiId = movie.getApiId();
 
-                if (apiId == null || apiId.isBlank()) {
-                    System.out.println("Entferne Film ohne gültige apiId: " + movie.getTitle());
-                    dao.delete(movie);
-                    continue;
-                }
+                    if (apiId == null || apiId.isBlank()) {
+                        System.out.println("Entferne Film ohne gültige apiId: " + movie.getTitle());
+                        dao.delete(movie);
+                        continue;
+                    }
 
-                if (!seenApiIds.add(apiId)) {
-                    System.out.println("Entferne Duplikat: " + movie.getTitle());
-                    dao.delete(movie);
+                    if (!seenApiIds.add(apiId)) {
+                        System.out.println("Entferne Duplikat: " + movie.getTitle());
+                        dao.delete(movie);
+                    }
                 }
+            }catch (SQLException e)
+            {
+                throw new DatabaseException("Daten konnten nicht erfolgreich gelöscht werden.", e);
             }
         }catch (SQLException e)
         {
-            throw new DatabaseException(e);
+            throw new DatabaseException("Es ist ein Fehler bei dem Laden von Daten aufegtreten.", e);
         }
     }
 } 
