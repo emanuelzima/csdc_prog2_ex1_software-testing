@@ -111,7 +111,6 @@ public class HomeController implements Initializable {
     }
 
     private final ClickEventHandler<Movie> onAddToWatchlistClicked = (clickedMovie) -> {
-        // TODO: Watchlist-Logik zum Hinzufügen von Filmen implementieren
 
         try {
             WatchlistMovieEntity entity = new WatchlistMovieEntity();

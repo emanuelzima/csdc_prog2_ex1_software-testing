@@ -55,7 +55,7 @@ public class WatchlistController implements Initializable {
     }
 
     private final ClickEventHandler<Movie> onRemoveFromWatchlistClicked = (clickedMovie) -> {
-        // TODO: Watchlist-Logik zum Entfernen von Filmen hinzufügen.
+
         try {
             Database db = Database.getInstance();
             db.initialize();

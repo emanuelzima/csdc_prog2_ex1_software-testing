@@ -44,13 +44,16 @@
 .background-green {
     -fx-background-color: green;
     -fx-text-fill: white;
-    -fx-font-weight: bold;
     -fx-cursor: hand;
 }
 
 .background-red {
     -fx-background-color: red;
     -fx-text-fill: white;
-    -fx-font-weight: bold;
     -fx-cursor: hand;
+}
+
+.movie-cell-buttons {
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
 }
