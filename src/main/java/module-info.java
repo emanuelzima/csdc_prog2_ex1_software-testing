@@ -1,16 +1,27 @@
+/**
+ * Module definition for the FH Movie Database application.
+ * This module declares its dependencies and exports/opens packages for use by other modules.
+ */
 module at.ac.fhcampuswien.fhmdb {
-    requires javafx.controls;
-    requires javafx.fxml;
+    // JavaFX dependencies
+    requires transitive javafx.controls;
+    requires transitive javafx.fxml;
     requires transitive javafx.graphics;
     requires com.google.gson;
     requires okhttp3;
-    requires com.jfoenix;
+    requires transitive com.jfoenix;
     requires java.sql;
-    requires ormlite.jdbc;
+    requires transitive org.hibernate.orm.core;
     requires com.h2database;
+    requires java.naming;
+    requires jakarta.persistence;
 
-    opens at.ac.fhcampuswien.fhmdb to javafx.fxml, ormlite.jdbc;
+    // Open packages for reflection
+    opens at.ac.fhcampuswien.fhmdb to javafx.fxml;
     exports at.ac.fhcampuswien.fhmdb;
     exports at.ac.fhcampuswien.fhmdb.models;
-    opens at.ac.fhcampuswien.fhmdb.models to javafx.fxml, com.google.gson, ormlite.jdbc;
+    opens at.ac.fhcampuswien.fhmdb.models to com.google.gson, org.hibernate.orm.core;
+    exports at.ac.fhcampuswien.fhmdb.ui;
+    exports at.ac.fhcampuswien.fhmdb.exceptions;
+    exports at.ac.fhcampuswien.fhmdb.api;
 } 

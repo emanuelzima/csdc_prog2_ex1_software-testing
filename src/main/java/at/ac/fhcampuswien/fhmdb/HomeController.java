@@ -17,7 +17,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import at.ac.fhcampuswien.fhmdb.models.Database;
 import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
 
 import java.io.IOException;
@@ -28,6 +27,14 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+/**
+ * Controller class for the main movie list view.
+ * This class handles the main functionality of the application including:
+ * - Displaying and filtering movies
+ * - Sorting movies
+ * - Managing the watchlist
+ * - Switching between views
+ */
 public class HomeController implements Initializable {
 
     @FXML
@@ -61,39 +68,73 @@ public class HomeController implements Initializable {
     public final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
     public SortedState sortedState;
 
+    /**
+     * Initializes the controller and sets up the UI components.
+     * @param url The location used to resolve relative paths for the root object
+     * @param resourceBundle The resources used to localize the root object
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeState();
 
         movieListView.setItems(observableMovies);
-        movieListView.setCellFactory(listView -> new MovieCell(onAddToWatchlistClicked, "Add to Watchlist"));
+        movieListView.setCellFactory(_ -> new MovieCell(onAddToWatchlistClicked, "Add to Watchlist"));
 
         genreComboBox.setPromptText("Filter by Genre");
         genreComboBox.getItems().addAll(Genre.values());
 
-        searchBtn.setOnAction(event -> filterMovies());
-        sortBtn.setOnAction(event -> sortMovies());
-        clearFiltersBtn.setOnAction(event -> clearFilters());
-        watchlistBtn.setOnAction(event -> switchToWatchlistView());
+        searchBtn.setOnAction(_ -> filterMovies());
+        sortBtn.setOnAction(_ -> sortMovies());
+        clearFiltersBtn.setOnAction(_ -> clearFilters());
+        watchlistBtn.setOnAction(_ -> switchToWatchlistView());
     }
 
+    /**
+     * Initializes the state of the controller by loading movies from the database or API.
+     */
     public void initializeState() {
-        Database db = Database.getInstance();
-
         try {
-            db.initialize();
-
-            MovieRepository repo = new MovieRepository(db.getMovieDao());
-            repo.removeDuplicateMovies();
+            MovieRepository repo = new MovieRepository();
             List<MovieEntity> cachedMovies = repo.getAllMovies();
 
             if (cachedMovies.isEmpty()) {
                 allMovies = MovieAPI.getMovies(null, null, null, null);
-                repo.addAllMovies(allMovies);
-                System.out.println("Filme von der API geladen und in DB gecached.");
+                // Save movies to database
+                for (Movie movie : allMovies) {
+                    MovieEntity entity = new MovieEntity(
+                        movie.getId(),
+                        movie.getTitle(),
+                        movie.getDescription(),
+                        movie.getGenres().stream()
+                            .map(Genre::name)
+                            .collect(Collectors.joining(",")),
+                        movie.getReleaseYear(),
+                        movie.getImgUrl(),
+                        movie.getLengthInMinutes(),
+                        movie.getRating()
+                    );
+                    repo.addMovie(entity);
+                }
+                System.out.println("Movies loaded from API and cached in database.");
             } else {
-                System.out.println("Filme aus Datenbank geladen.");
-                allMovies = MovieEntity.toMovies(cachedMovies);
+                System.out.println("Movies loaded from database.");
+                allMovies = cachedMovies.stream()
+                    .map(entity -> new Movie(
+                        entity.getApiId(),
+                        entity.getTitle(),
+                        entity.getDescription(),
+                        Arrays.stream(entity.getGenres().split(","))
+                            .map(Genre::valueOf)
+                            .collect(Collectors.toList()),
+                        entity.getReleaseYear(),
+                        entity.getImgUrl(),
+                        entity.getLengthInMinutes(),
+                        new ArrayList<>(),
+                        new ArrayList<>(),
+                        new ArrayList<>(),
+                        entity.getRating()
+                    ))
+                    .collect(Collectors.toList());
             }
         } catch (DatabaseException | MovieApiException e) {
             showError(movieListView.getScene().getWindow(),
@@ -114,23 +155,15 @@ public class HomeController implements Initializable {
         }
     }
 
+    /**
+     * Event handler for adding a movie to the watchlist.
+     */
     private final ClickEventHandler<Movie> onAddToWatchlistClicked = (clickedMovie) -> {
-
         try {
-            WatchlistMovieEntity entity = new WatchlistMovieEntity();
-            entity.setApiId(clickedMovie.getId());
-
-            Database db = Database.getInstance();
-            db.initialize();
-
-            WatchlistRepository repo = new WatchlistRepository(db.getWatchlistDao());
-            int added = repo.addToWatchlist(entity);
-
-            if (added > 0) {
-                System.out.println(clickedMovie.getTitle() + " wurde zur Watchlist hinzugefügt.");
-            } else {
-                System.out.println(clickedMovie.getTitle() + " ist bereits auf der Watchlist.");
-            }
+            WatchlistMovieEntity entity = new WatchlistMovieEntity(clickedMovie.getId());
+            WatchlistRepository repo = new WatchlistRepository();
+            repo.addToWatchlist(entity);
+            System.out.println(clickedMovie.getTitle() + " was added to watchlist.");
         } catch (DatabaseException e) {
             showError(movieListView.getScene().getWindow(),
                     "Database Error",
@@ -139,6 +172,9 @@ public class HomeController implements Initializable {
         }
     };
 
+    /**
+     * Clears all filters and resets the movie list.
+     */
     public void clearFilters() {
         genreComboBox.getSelectionModel().clearSelection();
         searchField.clear();
@@ -147,6 +183,9 @@ public class HomeController implements Initializable {
         initializeState();
     }
 
+    /**
+     * Filters movies based on the current filter settings.
+     */
     public void filterMovies() {
         String query = searchField.getText();
         Genre genre = genreComboBox.getValue();
@@ -155,6 +194,13 @@ public class HomeController implements Initializable {
         applyAllFilters(query, genre, releaseYear, rating);
     }
 
+    /**
+     * Applies all filters to the movie list.
+     * @param query Search query
+     * @param genre Selected genre
+     * @param releaseYear Release year filter
+     * @param rating Rating filter
+     */
     public void applyAllFilters(String query, Genre genre, String releaseYear, String rating) {
         try {
             observableMovies.setAll(MovieAPI.getMovies(
@@ -173,6 +219,9 @@ public class HomeController implements Initializable {
         }
     }
 
+    /**
+     * Sorts the movie list by title in ascending or descending order.
+     */
     public void sortMovies() {
         if (sortedState == SortedState.NONE || sortedState == SortedState.DESCENDING) {
             observableMovies.sort(Comparator.comparing(Movie::getTitle));
@@ -185,6 +234,11 @@ public class HomeController implements Initializable {
         }
     }
 
+    /**
+     * Sets the movie list to display.
+     * @param movies List of movies to display
+     * @throws IllegalArgumentException if movies is null
+     */
     public void setMovieList(List<Movie> movies) {
         if (movies == null) {
             throw new IllegalArgumentException("Movie list cannot be null");
@@ -193,6 +247,11 @@ public class HomeController implements Initializable {
         observableMovies.setAll(movies);
     }
 
+    /**
+     * Finds the most popular actor in a list of movies.
+     * @param movies List of movies to search through
+     * @return The name of the most popular actor, or null if no movies are provided
+     */
     public static String getMostPopularActor(List<Movie> movies) {
         return movies.stream()
                 .flatMap(movie -> movie.getMainCast().stream())
@@ -203,6 +262,11 @@ public class HomeController implements Initializable {
                 .orElse(null);
     }
 
+    /**
+     * Finds the length of the longest movie title in a list of movies.
+     * @param movies List of movies to search through
+     * @return The length of the longest title, or 0 if no movies are provided
+     */
     public static int getLongestMovieTitle(List<Movie> movies) {
         return movies.stream()
                 .mapToInt(movie -> movie.getTitle().length())
@@ -210,18 +274,34 @@ public class HomeController implements Initializable {
                 .orElse(0);
     }
 
+    /**
+     * Counts the number of movies from a specific director.
+     * @param movies List of movies to search through
+     * @param director Name of the director to count movies for
+     * @return Number of movies by the specified director
+     */
     public static long countMoviesFrom(List<Movie> movies, String director) {
         return movies.stream()
                 .filter(movie -> movie.getDirectors().contains(director))
                 .count();
     }
 
+    /**
+     * Gets movies released between two years.
+     * @param movies List of movies to search through
+     * @param startYear Start year (inclusive)
+     * @param endYear End year (inclusive)
+     * @return List of movies released between the specified years
+     */
     public static List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
         return movies.stream()
                 .filter(movie -> movie.getReleaseYear() >= startYear && movie.getReleaseYear() <= endYear)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Switches to the watchlist view.
+     */
     private void switchToWatchlistView() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("watchlist-view.fxml"));

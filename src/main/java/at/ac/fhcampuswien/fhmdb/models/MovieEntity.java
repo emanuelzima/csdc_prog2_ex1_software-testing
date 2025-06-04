@@ -1,46 +1,78 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
-
+import jakarta.persistence.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
-@DatabaseTable(tableName = "movies")
+/**
+ * Represents a movie in the database.
+ * This class is annotated with ORMLite annotations and serves as a database entity
+ * for the "movies" table. It contains all the necessary fields to store movie information
+ * and provides methods to convert between Movie and MovieEntity objects.
+ */
+@Entity
+@Table(name = "movies")
 public class MovieEntity {
-    @DatabaseField(generatedId = true)
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @DatabaseField
+    @Column(nullable = false)
     private String apiId;
 
-    @DatabaseField
+    @Column(nullable = false)
     private String title;
 
-    @DatabaseField
+    @Column(length = 1000)
     private String description;
 
-    @DatabaseField
+    @Column
     private String genres;
 
-    @DatabaseField
+    @Column
     private int releaseYear;
 
-    @DatabaseField
+    @Column
     private String imgUrl;
 
-    @DatabaseField
+    @Column
     private int lengthInMinutes;
 
-    @DatabaseField
+    @Column
     private double rating;
 
+    // Default constructor required by Hibernate
+    public MovieEntity() {
+    }
+
+    public MovieEntity(String apiId, String title, String description, String genres, 
+                      int releaseYear, String imgUrl, int lengthInMinutes, double rating) {
+        this.apiId = apiId;
+        this.title = title;
+        this.description = description;
+        this.genres = genres;
+        this.releaseYear = releaseYear;
+        this.imgUrl = imgUrl;
+        this.lengthInMinutes = lengthInMinutes;
+        this.rating = rating;
+    }
+
+    /**
+     * Converts a list of genres to a comma-separated string.
+     * @param genres List of genres to convert
+     * @return Comma-separated string of genre names
+     */
     public static String genresToString(List<Genre> genres) {
         return genres.stream().map(Enum::name).collect(Collectors.joining(","));
     }
 
+    /**
+     * Converts a list of Movie objects to MovieEntity objects.
+     * @param movies List of Movie objects to convert
+     * @return List of converted MovieEntity objects
+     */
     public static List<MovieEntity> fromMovies(List<Movie> movies) {
         return movies.stream().map(movie -> {
             MovieEntity entity = new MovieEntity();
@@ -56,6 +88,11 @@ public class MovieEntity {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Converts a list of MovieEntity objects to Movie objects.
+     * @param movieEntities List of MovieEntity objects to convert
+     * @return List of converted Movie objects
+     */
     public static List<Movie> toMovies(List<MovieEntity> movieEntities) {
         return movieEntities.stream().map(entity -> {
             List<Genre> genreList = Arrays.stream(entity.genres.split(","))
@@ -79,35 +116,76 @@ public class MovieEntity {
         }).collect(Collectors.toList());
     }
 
-    public String getApiId() {return apiId;}
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
 
-    public void setApiId(String apiId) {this.apiId = apiId;}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getTitle() {return title;}
+    public String getApiId() {
+        return apiId;
+    }
 
-    public void setTitle(String title) {this.title = title;}
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
 
-    public String getDescription() {return description;}
+    public String getTitle() {
+        return title;
+    }
 
-    public void setDescription(String description) {this.description = description;}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public String getGenres() {return genres;}
+    public String getDescription() {
+        return description;
+    }
 
-    public void setGenres(String genres) {this.genres = genres;}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public int getReleaseYear() {return releaseYear;}
+    public String getGenres() {
+        return genres;
+    }
 
-    public void setReleaseYear(int releaseYear) {this.releaseYear = releaseYear;}
+    public void setGenres(String genres) {
+        this.genres = genres;
+    }
 
-    public String getImgUrl() {return imgUrl;}
+    public int getReleaseYear() {
+        return releaseYear;
+    }
 
-    public void setImgUrl(String imgUrl) {this.imgUrl = imgUrl;}
+    public void setReleaseYear(int releaseYear) {
+        this.releaseYear = releaseYear;
+    }
 
-    public int getLengthInMinutes() {return lengthInMinutes;}
+    public String getImgUrl() {
+        return imgUrl;
+    }
 
-    public void setLengthInMinutes(int lengthInMinutes) {this.lengthInMinutes = lengthInMinutes;}
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
 
-    public double getRating() {return rating;}
+    public int getLengthInMinutes() {
+        return lengthInMinutes;
+    }
 
-    public void setRating(double rating) {this.rating = rating;}
+    public void setLengthInMinutes(int lengthInMinutes) {
+        this.lengthInMinutes = lengthInMinutes;
+    }
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
 } 

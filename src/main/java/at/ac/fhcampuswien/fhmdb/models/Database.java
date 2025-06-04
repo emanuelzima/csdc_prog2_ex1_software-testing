@@ -1,76 +1,106 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
-import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.table.TableUtils;
-import java.sql.SQLException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
+
+import java.util.List;
+import java.util.Optional;
 
 public class Database {
     private static Database instance;
-    private static final String DB_URL = "jdbc:h2:./database";
-    private static final String username = "sa";
-    private static final String password = "";
+    private final SessionFactory sessionFactory;
 
-    private ConnectionSource conn;
-    private Dao<MovieEntity, Long> movieDao;
-    private Dao<WatchlistMovieEntity, Long> watchlistDao;
+    private Database() {
+        try {
+            Configuration configuration = new Configuration();
+            configuration.configure("hibernate.cfg.xml");
+            sessionFactory = configuration.buildSessionFactory();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize Hibernate", e);
+        }
+    }
 
-    private Database() {} // privater Konstruktor
-
-    public static Database getInstance() {
+    public static synchronized Database getInstance() {
         if (instance == null) {
             instance = new Database();
         }
         return instance;
     }
 
-    public void initialize() throws DatabaseException {
-        if (conn == null) {
-            createConnectionsSource();
-            createTables();
-            initializeDaos();
+    public Session getSession() {
+        return sessionFactory.openSession();
+    }
+
+    public void close() {
+        if (sessionFactory != null && !sessionFactory.isClosed()) {
+            sessionFactory.close();
         }
     }
 
-    public void createConnectionsSource() throws DatabaseException {
-        try
-        {
-            conn = new JdbcConnectionSource(DB_URL, username, password);
-        } catch (SQLException e) {
-            throw new DatabaseException("Es wurde kein Treiber für die zu erstellende Datenbank gefunden.",e);
+    // Generic CRUD operations
+    public <T> void save(T entity) {
+        try (Session session = getSession()) {
+            Transaction transaction = session.beginTransaction();
+            try {
+                session.persist(entity);
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+                throw e;
+            }
         }
     }
 
-    public void createTables() throws DatabaseException {
-        try
-        {
-            TableUtils.createTableIfNotExists(conn, MovieEntity.class);
-            TableUtils.createTableIfNotExists(conn, WatchlistMovieEntity.class);
-        }catch (SQLException e)
-        {
-            throw new DatabaseException("Es ist ein Problem bei dem Erstellen der Tabellen der Datenbank aufgetreten.", e);
+    public <T> void update(T entity) {
+        try (Session session = getSession()) {
+            Transaction transaction = session.beginTransaction();
+            try {
+                session.merge(entity);
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+                throw e;
+            }
         }
     }
 
-    public Dao<WatchlistMovieEntity, Long> getWatchlistDao() {
-        return watchlistDao;
+    public <T> void delete(T entity) {
+        try (Session session = getSession()) {
+            Transaction transaction = session.beginTransaction();
+            try {
+                session.remove(entity);
+                transaction.commit();
+            } catch (Exception e) {
+                transaction.rollback();
+                throw e;
+            }
+        }
     }
 
-    public Dao<MovieEntity, Long> getMovieDao() {
-        return movieDao;
+    public <T> Optional<T> findById(Class<T> entityClass, Long id) {
+        try (Session session = getSession()) {
+            return Optional.ofNullable(session.get(entityClass, id));
+        }
     }
 
-    // Initialize DAOs after connection is established
-    public void initializeDaos() throws DatabaseException {
-        try
-        {
-            movieDao = com.j256.ormlite.dao.DaoManager.createDao(conn, MovieEntity.class);
-            watchlistDao = com.j256.ormlite.dao.DaoManager.createDao(conn, WatchlistMovieEntity.class);
-        }catch (SQLException e)
-        {
-            throw new DatabaseException("Es ist ein Fehler bei dem Speichern passiert.", e);
+    public <T> List<T> findAll(Class<T> entityClass) {
+        try (Session session = getSession()) {
+            Query<T> query = session.createQuery("FROM " + entityClass.getSimpleName(), entityClass);
+            return query.list();
+        }
+    }
+
+    public <T> List<T> findByField(Class<T> entityClass, String fieldName, Object value) {
+        try (Session session = getSession()) {
+            Query<T> query = session.createQuery(
+                "FROM " + entityClass.getSimpleName() + " WHERE " + fieldName + " = :value",
+                entityClass
+            );
+            query.setParameter("value", value);
+            return query.list();
         }
     }
 } 

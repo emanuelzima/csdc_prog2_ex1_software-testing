@@ -1,70 +1,85 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
 import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
-import com.j256.ormlite.dao.Dao;
-
-import java.sql.DataTruncation;
-import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
+/**
+ * Repository class for managing watchlist data in the database.
+ * This class encapsulates all database operations for the watchlist and provides methods
+ * for adding, removing, and retrieving movies from the watchlist.
+ */
 public class WatchlistRepository {
-    private final Dao<WatchlistMovieEntity, Long> dao;
+    private final Database database;
 
-    public WatchlistRepository(Dao<WatchlistMovieEntity, Long> dao) {
-        this.dao = dao;
+    public WatchlistRepository() {
+        this.database = Database.getInstance();
     }
 
-    public List<WatchlistMovieEntity> getWatchlist() throws DatabaseException {
-        try
-        {
-            return dao.queryForAll();
-        }catch (SQLException e)
-        {
-            throw new DatabaseException(e);
+    /**
+     * Adds a movie to the watchlist if it's not already present.
+     * @param movie The movie to add to the watchlist
+     * @throws DatabaseException if database access fails
+     */
+    public void addToWatchlist(WatchlistMovieEntity movie) throws DatabaseException {
+        try {
+            database.save(movie);
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to add movie to watchlist", e);
         }
     }
 
-    public int addToWatchlist(WatchlistMovieEntity movie) throws DatabaseException {
-        // Only add if not already present
-        try
-        {
-            List<WatchlistMovieEntity> existing = dao.queryForEq("apiId", movie.getApiId());
-            if (existing.isEmpty()) {
-                return dao.create(movie);
-            }
-            return 0;
-        }catch (SQLException e)
-        {
-            throw new DatabaseException("Es ist ein Fehler bei dem Speichern von Daten aufgetreten.", e);
+    /**
+     * Removes a movie from the watchlist by its API ID.
+     * @param movie The movie to remove from the watchlist
+     * @throws DatabaseException if database access fails
+     */
+    public void removeFromWatchlist(WatchlistMovieEntity movie) throws DatabaseException {
+        try {
+            database.delete(movie);
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to remove movie from watchlist", e);
         }
     }
 
-    public int removeFromWatchlist(String apiId) throws DatabaseException {
-        try
-        {
-            List<WatchlistMovieEntity> entries = dao.queryForEq("apiId", apiId);
-            int count = 0;
-            for (WatchlistMovieEntity entry : entries) {
-                count += dao.delete(entry);
-            }
-            return count;
-        }catch (SQLException e)
-        {
-            throw new DatabaseException("Es ist ein Fehler bei dem Löschen von Daten passiert.", e);
+    /**
+     * Retrieves all movies from the watchlist.
+     * @return List of all watchlist entries
+     * @throws DatabaseException if database access fails
+     */
+    public List<WatchlistMovieEntity> getAllWatchlistMovies() throws DatabaseException {
+        try {
+            return database.findAll(WatchlistMovieEntity.class);
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to get all watchlist movies", e);
         }
     }
 
-    public List<String> getAllWatchlistApiIds() throws DatabaseException {
-        try
-        {
-            List<WatchlistMovieEntity> entries = dao.queryForAll();
-            return entries.stream()
-                    .map(WatchlistMovieEntity::getApiId)
-                    .collect(Collectors.toList());
-        }catch (SQLException e)
-        {
-            throw new DatabaseException("Es ist ein Fehler bei dem Laden von Daten aufgetreten.", e);
+    /**
+     * Retrieves a movie from the watchlist by its ID.
+     * @param id The ID of the movie to retrieve
+     * @return Optional containing the movie if found, empty if not found
+     * @throws DatabaseException if database access fails
+     */
+    public Optional<WatchlistMovieEntity> getWatchlistMovieById(Long id) throws DatabaseException {
+        try {
+            return database.findById(WatchlistMovieEntity.class, id);
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to get watchlist movie by ID", e);
+        }
+    }
+
+    /**
+     * Retrieves all movies from the watchlist by their API ID.
+     * @param apiId The API ID of the movies to retrieve
+     * @return List of movies with the specified API ID
+     * @throws DatabaseException if database access fails
+     */
+    public List<WatchlistMovieEntity> getWatchlistMoviesByApiId(String apiId) throws DatabaseException {
+        try {
+            return database.findByField(WatchlistMovieEntity.class, "apiId", apiId);
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to get watchlist movie by API ID", e);
         }
     }
 } 

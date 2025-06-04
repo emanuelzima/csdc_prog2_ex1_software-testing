@@ -1,15 +1,38 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
+import jakarta.persistence.*;
 
-@DatabaseTable(tableName = "watchlist")
+/**
+ * Represents a movie in the watchlist database.
+ * This class is annotated with Hibernate annotations and serves as a database entity
+ * for the "watchlist" table. It contains only the necessary fields for watchlist functionality.
+ * The complete movie data is referenced through the apiId from the movies table.
+ */
+@Entity
+@Table(name = "watchlist")
 public class WatchlistMovieEntity {
-    @DatabaseField(generatedId = true)
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @DatabaseField
+    @Column(nullable = false)
     private String apiId;
+
+    // Default constructor required by Hibernate
+    public WatchlistMovieEntity() {
+    }
+
+    public WatchlistMovieEntity(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getApiId() {
         return apiId;
@@ -18,6 +41,5 @@ public class WatchlistMovieEntity {
     public void setApiId(String apiId) {
         this.apiId = apiId;
     }
-
 }
 

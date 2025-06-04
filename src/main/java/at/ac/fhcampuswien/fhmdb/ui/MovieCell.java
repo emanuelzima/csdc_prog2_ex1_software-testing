@@ -43,14 +43,14 @@ public class MovieCell extends ListCell<Movie> {
         } else if (REMOVE_LABEL.equalsIgnoreCase(buttonLabel)) {
             actionBtn.getStyleClass().add("background-red");
         }
-        actionBtn.setOnMouseClicked(e -> {
+        actionBtn.setOnMouseClicked(_ -> {
             if (clickHandler != null && getItem() != null) {
                 clickHandler.onClick(getItem());
             }
         });
 
         toggleDetailsBtn.getStyleClass().add("background-yellow");
-        toggleDetailsBtn.setOnAction(e -> toggleDetails());
+        toggleDetailsBtn.setOnAction(_ -> toggleDetails());
     }
 
     private void configureLabels() {

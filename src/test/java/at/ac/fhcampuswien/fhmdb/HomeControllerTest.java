@@ -1,179 +1,44 @@
 package at.ac.fhcampuswien.fhmdb;
 
-import at.ac.fhcampuswien.fhmdb.models.Genre;
-import at.ac.fhcampuswien.fhmdb.models.Movie;
-import at.ac.fhcampuswien.fhmdb.models.SortedState;
+import at.ac.fhcampuswien.fhmdb.models.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class HomeControllerTest {
 
     private HomeController homeController;
+    private List<Movie> testMovies;
 
     @BeforeEach
     public void cleanStart() {
         homeController = new HomeController();
-        homeController.initializeState();
+        // Create test movies
+        testMovies = Arrays.asList(
+            new Movie("1", "Inception", "A thief who steals corporate secrets", 
+                List.of(Genre.ACTION), 2010, "url1", 148, 
+                List.of("Christopher Nolan"), List.of("Christopher Nolan"), 
+                List.of("Leonardo DiCaprio"), 8.8),
+            new Movie("2", "The Dark Knight", "When the menace known as the Joker", 
+                List.of(Genre.ACTION, Genre.DRAMA), 2008, "url2", 152,
+                List.of("Christopher Nolan"), List.of("Christopher Nolan"),
+                List.of("Christian Bale"), 9.0),
+            new Movie("3", "Pulp Fiction", "The lives of two mob hitmen", 
+                List.of(Genre.CRIME, Genre.DRAMA), 1994, "url3", 154,
+                List.of("Quentin Tarantino"), List.of("Quentin Tarantino"),
+                List.of("John Travolta"), 8.9)
+        );
+        homeController.setMovieList(testMovies);
     }
 
     @Test
     void afterInitialization_allMoviesAndObservableMovies_shouldBeTheSame() {
         assertEquals(homeController.allMovies, homeController.observableMovies);
     }
-
-    /**
-     * Testing filter methods
-     */
-//    @Test
-//    void filterByQuery_withMatchingCaseInsensitiveQueryInTitle_returnsExpectedMovies() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> filtered = homeController.filterByQuery(movies, "inCEPTioN");
-//        // then:
-//        for (Movie movie : filtered) {
-//            String title = movie.getTitle().toLowerCase();
-//            assertTrue(title.contains("inception"));
-//        }
-//    }
-//
-//    @Test
-//    void filterByQuery_withMatchingCaseInsensitiveQueryInDescription_returnsExpectedMovies() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> filtered = homeController.filterByQuery(movies, "EXploR");
-//        // then:
-//        for (Movie movie : filtered) {
-//            String description = movie.getDescription().toLowerCase();
-//            assertTrue(description.contains("explor"));
-//        }
-//    }
-//
-//    @Test
-//    void filterByQuery_withNonMatchingQuery_returnsEmptyList() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> filtered = homeController.filterByQuery(movies, "TeSThALlo");
-//        // then:
-//        assertTrue(filtered.isEmpty());
-//    }
-//
-//    @Test
-//    void filterByQuery_withNullQuery_returnsOriginalList() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> resultNull = homeController.filterByQuery(movies, null);
-//        // then:
-//        assertEquals(movies, resultNull);
-//    }
-//
-//    @Test
-//    void filterByQuery_withEmptyQuery_returnsOriginalList() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> resultEmpty = homeController.filterByQuery(movies, "");
-//        // then:
-//        assertEquals(movies, resultEmpty);
-//    }
-//
-//    @Test
-//    void filterByQuery_withWhitespaceAsQuery_returnsOriginalList() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> resultEmpty = homeController.filterByQuery(movies, "   ");
-//        // then:
-//        assertEquals(movies, resultEmpty);
-//    }
-//
-//    @Test
-//    void filterByGenre_withNullGenre_returnsOriginalList() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        // when:
-//        List<Movie> filtered = homeController.filterByGenre(movies, null);
-//        // then:
-//        assertEquals(movies, filtered);
-//    }
-//
-//    @Test
-//    void filterByGenre_returnsOnlyMoviesWithGivenGenre() {
-//        // given:
-//        List<Movie> movies = Movie.initializeMovies();
-//        Genre targetGenre = Genre.DRAMA;
-//        // when
-//        List<Movie> filtered = homeController.filterByGenre(movies, targetGenre);
-//        // then:
-//        for (Movie movie : filtered) {
-//            assertTrue(movie.getGenres().contains(targetGenre));
-//        }
-//    }
-
-//    @Test
-//    void applyAllFilters_withEmptyQueryFields_returnsAllMovies() {
-//        // given:
-//        homeController.setMovieList(Movie.initializeMovies());
-//        // when:
-//        homeController.applyAllFilters("", null, "", "");
-//        // then:
-//        assertEquals(homeController.allMovies, homeController.observableMovies);
-//    }
-
-//    @Test
-//    void applyAllFilters_WhenQueryMatches_AddsMoviesToObservableMovies() {
-//        // given:
-//        Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
-//        Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
-//        homeController.setMovieList(List.of(movie1, movie2));
-//        // when:
-//        homeController.applyAllFilters("action movie", null, "", "");
-//        // then:
-//        assertTrue(homeController.observableMovies.contains(movie1));
-//    }
-
-//    @Test
-//    void applyAllFilters_WhenQueryDoesNotMatch_ExcludesMoviesFromObservableMovies() {
-//        // given:
-//        Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
-//        Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
-//        homeController.setMovieList(List.of(movie1, movie2));
-//        // when:
-//        homeController.applyAllFilters("action movie", null, "", "");
-//        // then:
-//        assertFalse(homeController.observableMovies.contains(movie2));
-//    }
-
-//    @Test
-//    void applyAllFilters_WhenGenreMatches_AddsMoviesToObservableMovies() {
-//        // given:
-//        Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
-//        Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
-//        homeController.setMovieList(List.of(movie1, movie2));
-//        // when:
-//        homeController.applyAllFilters("", Genre.ACTION, "", "");
-//        // then:
-//        assertTrue(homeController.observableMovies.contains(movie1));
-//    }
-
-//    @Test
-//    void applyAllFilters_WhenGenreDoesNotMatch_ExcludesMoviesFromObservableMovies() {
-//        // given:
-//        Movie movie1 = new Movie("Action Movie", "Exciting action", List.of(Genre.ACTION));
-//        Movie movie2 = new Movie("Comedy Movie", "Hilarious comedy", List.of(Genre.COMEDY));
-//        homeController.setMovieList(List.of(movie1, movie2));
-//        // when:
-//        homeController.applyAllFilters("", Genre.ACTION, "", "");
-//        // then:
-//        assertFalse(homeController.observableMovies.contains(movie2));
-//    }
 
     /**
      * Testing sortMovies
@@ -248,52 +113,51 @@ class HomeControllerTest {
     }
 
     /**
-    Tests für Exercise 2
+     * Tests for Exercise 2
      */
-
     @Test
     void getMostPopularActor_returnsMostPopularActor() {
-        List<Movie> movies = Movie.initializeMovies();
-        String mostPopularActor = homeController.getMostPopularActor(movies);
-
-        List<String> possible = List.of("Ian McKellen", "Viggo Mortensen", "Elijah Wood"); // weil alle 3 2x vorkommen
-        assertTrue(possible.contains(mostPopularActor));
+        // given:
+        String mostPopularActor = HomeController.getMostPopularActor(testMovies);
+        // then:
+        assertTrue(List.of("Leonardo DiCaprio", "Christian Bale", "John Travolta")
+            .contains(mostPopularActor));
     }
 
     @Test
     void getLongestMovieTitle_returnsLongestMovieTitle() {
-        List<Movie> movies = Movie.initializeMovies();
-
-        int expected = "Star Wars: Episode V - The Empire Strikes Back".length();
-        int actual = homeController.getLongestMovieTitle(movies);
+        // given:
+        int expected = "The Dark Knight".length();
+        // when:
+        int actual = HomeController.getLongestMovieTitle(testMovies);
+        // then:
         assertEquals(expected, actual);
     }
 
     @Test
     void countMoviesFrom_returnsNumberOfMovies() {
-        List<Movie> movies = Movie.initializeMovies();
+        // given:
         String director = "Christopher Nolan";
-
-        long expected = movies.stream()
+        long expected = testMovies.stream()
                 .filter(movie -> movie.getDirectors().contains(director))
                 .count();
-
-        long actual = homeController.countMoviesFrom(movies, director);
+        // when:
+        long actual = HomeController.countMoviesFrom(testMovies, director);
+        // then:
         assertEquals(expected, actual);
     }
 
     @Test
     void getMoviesBetweenYears_returnsMoviesBetweenYears() {
-        List<Movie> movies = Movie.initializeMovies();
+        // given:
         int start = 2000;
         int end = 2019;
-
-        List<Movie> expected = movies.stream()
+        List<Movie> expected = testMovies.stream()
                 .filter(m -> m.getReleaseYear() >= start && m.getReleaseYear() <= end)
                 .toList();
-
-        List<Movie> actual = homeController.getMoviesBetweenYears(movies, start, end);
-
+        // when:
+        List<Movie> actual = HomeController.getMoviesBetweenYears(testMovies, start, end);
+        // then:
         assertTrue(actual.containsAll(expected));
         assertTrue(expected.containsAll(actual));
     }
