@@ -84,6 +84,8 @@ public class WatchlistController implements Initializable {
                 .filter(movie -> movie != null)
                 .collect(Collectors.toList());
 
+            // Clear existing movies and add all movies from watchlist
+            watchlistMovies.clear();
             watchlistMovies.addAll(movies);
             movieListView.setItems(watchlistMovies);
             movieListView.setCellFactory(_ -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
@@ -105,11 +107,14 @@ public class WatchlistController implements Initializable {
             List<WatchlistMovieEntity> watchlistEntities = repo.getWatchlistMoviesByApiId(clickedMovie.getId());
             
             if (!watchlistEntities.isEmpty()) {
+                // Remove all instances from database
                 for (WatchlistMovieEntity entity : watchlistEntities) {
                     repo.removeFromWatchlist(entity);
                 }
                 System.out.println(clickedMovie.getTitle() + " was removed from watchlist.");
-                watchlistMovies.remove(clickedMovie);
+                
+                // Remove all instances from UI
+                watchlistMovies.removeIf(movie -> movie.getId().equals(clickedMovie.getId()));
             } else {
                 showError(
                     movieListView.getScene().getWindow(),

@@ -39,6 +39,11 @@ public class WatchlistRepository {
      */
     public void addToWatchlist(WatchlistMovieEntity movie) throws DatabaseException {
         try {
+            // Check if movie is already in watchlist
+            List<WatchlistMovieEntity> existingMovies = getWatchlistMoviesByApiId(movie.getApiId());
+            if (!existingMovies.isEmpty()) {
+                throw new DatabaseException("Movie is already in your watchlist", null);
+            }
             database.save(movie);
         } catch (Exception e) {
             throw new DatabaseException("Failed to add movie to watchlist", e);
