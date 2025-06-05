@@ -6,6 +6,8 @@ import at.ac.fhcampuswien.fhmdb.exceptions.MovieApiException;
 import at.ac.fhcampuswien.fhmdb.models.*;
 import at.ac.fhcampuswien.fhmdb.models.sorting.SortState;
 import at.ac.fhcampuswien.fhmdb.models.sorting.UnsortedState;
+import at.ac.fhcampuswien.fhmdb.models.WatchlistStatus;
+import at.ac.fhcampuswien.fhmdb.observer.Observer;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -19,62 +21,42 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
-import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.List;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
+import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showInfo;
+
 /**
- * Controller class for the main movie list view.
- * This class handles the main functionality of the application including:
- * - Displaying and filtering movies
- * - Sorting movies
- * - Managing the watchlist
- * - Switching between views
+ * Controller-Klasse für die Hauptansicht (Home) mit der Movie-Liste.
+ * Implementiert Observer, um Benachrichtigungen vom WatchlistRepository zu erhalten.
  */
-public class HomeController implements Initializable {
+public class HomeController implements Initializable, Observer {
 
-    @FXML
-    public JFXButton searchBtn;
-
-    @FXML
-    public TextField searchField;
-
-    @FXML
-    public TextField releaseYearField;
-
-    @FXML
-    public TextField ratingField;
-
-    @FXML
-    public JFXListView<Movie> movieListView;
-
-    @FXML
-    public JFXComboBox<Genre> genreComboBox;
-
-    @FXML
-    public JFXButton sortBtn;
-
-    @FXML
-    public JFXButton clearFiltersBtn;
-
-    @FXML
-    public JFXButton watchlistBtn;
+    @FXML public JFXButton searchBtn;
+    @FXML public TextField searchField;
+    @FXML public TextField releaseYearField;
+    @FXML public TextField ratingField;
+    @FXML public JFXListView<Movie> movieListView;
+    @FXML public JFXComboBox<Genre> genreComboBox;
+    @FXML public JFXButton sortBtn;
+    @FXML public JFXButton clearFiltersBtn;
+    @FXML public JFXButton watchlistBtn;
 
     public List<Movie> allMovies;
     public final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
     private SortState sortState = new UnsortedState();
 
     /**
-     * Initializes the controller and sets up the UI components.
+     * Initialisiert den Controller, richtet die UI-Komponenten ein
+     * und meldet sich beim WatchlistRepository als Observer an.
      *
-     * @param url            The location used to resolve relative paths for the root object
-     * @param resourceBundle The resources used to localize the root object
+     * @param url            Der Pfad zur FXML-Ressource
+     * @param resourceBundle Ressourcen für Internationalisierung
      */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -90,10 +72,12 @@ public class HomeController implements Initializable {
         sortBtn.setOnAction(_ -> sortMovies());
         clearFiltersBtn.setOnAction(_ -> clearFilters());
         watchlistBtn.setOnAction(_ -> switchToWatchlistView());
+
+        WatchlistRepository.getInstance().addObserver(this);
     }
 
     /**
-     * Initializes the state of the controller by loading movies from the database or API.
+     * Lädt Filme aus der Datenbank oder über die API und befüllt die Liste.
      */
     public void initializeState() {
         try {
@@ -102,15 +86,12 @@ public class HomeController implements Initializable {
 
             if (cachedMovies.isEmpty()) {
                 allMovies = MovieAPI.getMovies(null, null, null, null);
-                // Save movies to database
                 for (Movie movie : allMovies) {
                     MovieEntity entity = new MovieEntity(
                             movie.getId(),
                             movie.getTitle(),
                             movie.getDescription(),
-                            movie.getGenres().stream()
-                                    .map(Genre::name)
-                                    .collect(Collectors.joining(",")),
+                            movie.getGenres().stream().map(Genre::name).collect(Collectors.joining(",")),
                             movie.getReleaseYear(),
                             movie.getImgUrl(),
                             movie.getLengthInMinutes(),
@@ -140,10 +121,12 @@ public class HomeController implements Initializable {
                         .collect(Collectors.toList());
             }
         } catch (DatabaseException | MovieApiException e) {
-            showError(movieListView.getScene().getWindow(),
+            showError(
+                    movieListView.getScene().getWindow(),
                     "Initialization Error",
                     "Failed to load movie data",
-                    e.getMessage());
+                    e.getMessage()
+            );
             allMovies = new ArrayList<>();
         }
 
@@ -159,24 +142,56 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Event handler for adding a movie to the watchlist.
+     * Event-Handler für den "Add to Watchlist"-Button in jeder MovieCell.
      */
-    private final ClickEventHandler<Movie> onAddToWatchlistClicked = (clickedMovie) -> {
+    private final ClickEventHandler<Movie> onAddToWatchlistClicked = clickedMovie -> {
         try {
             WatchlistMovieEntity entity = new WatchlistMovieEntity(clickedMovie.getId());
             WatchlistRepository repo = WatchlistRepository.getInstance();
             repo.addToWatchlist(entity);
-            System.out.println(clickedMovie.getTitle() + " was added to watchlist.");
         } catch (DatabaseException e) {
-            showError(movieListView.getScene().getWindow(),
+            showError(
+                    movieListView.getScene().getWindow(),
                     "Database Error",
                     "Could not add movie to watchlist",
-                    e.getMessage());
+                    e.getMessage()
+            );
         }
     };
 
     /**
-     * Clears all filters and resets the movie list.
+     * Wird aufgerufen, wenn das WatchlistRepository eine Benachrichtigung sendet.
+     *
+     * @param status Der Typ des Ereignisses (ADDED_SUCCESS, ALREADY_EXISTS etc.)
+     * @param title  Der Titel des betroffenen Films
+     */
+    @Override
+    public void update(WatchlistStatus status, String title) {
+        Window parentWindow = movieListView.getScene().getWindow();
+        switch (status) {
+            case ALREADY_EXISTS:
+                showError(
+                        parentWindow,
+                        "Watchlist Status Info",
+                        "Film bereits in Watchlist",
+                        "\"" + title + "\" ist bereits in der Watchlist."
+                );
+                break;
+            case ADDED_SUCCESS:
+                showInfo(
+                        parentWindow,
+                        "Watchlist Status Info",
+                        "Film hinzugefügt",
+                        "\"" + title + "\" wurde der Watchlist hinzugefügt."
+                );
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Entfernt alle Filter und lädt den ursprünglichen Filmzustand neu.
      */
     public void clearFilters() {
         genreComboBox.getSelectionModel().clearSelection();
@@ -187,7 +202,7 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Filters movies based on the current filter settings.
+     * Liest alle Filterwerte ein und wendet sie an.
      */
     public void filterMovies() {
         String query = searchField.getText();
@@ -198,21 +213,23 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Applies all filters to the movie list.
+     * Wendet alle angegebenen Filter auf die Movie-Liste an.
      *
-     * @param query       Search query
-     * @param genre       Selected genre
-     * @param releaseYear Release year filter
-     * @param rating      Rating filter
+     * @param query       Suchbegriff
+     * @param genre       Ausgewähltes Genre (oder null)
+     * @param releaseYear Release-Jahr-Filter (oder leer)
+     * @param rating      Rating-Filter (oder leer)
      */
     public void applyAllFilters(String query, Genre genre, String releaseYear, String rating) {
         try {
-            observableMovies.setAll(MovieAPI.getMovies(
-                    query,
-                    genre != null ? genre.name() : null,
-                    releaseYear,
-                    rating
-            ));
+            observableMovies.setAll(
+                    MovieAPI.getMovies(
+                            query,
+                            genre != null ? genre.name() : null,
+                            releaseYear,
+                            rating
+                    )
+            );
         } catch (MovieApiException e) {
             showError(
                     movieListView.getScene().getWindow(),
@@ -224,7 +241,7 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Sorts the movie list by title in ascending or descending order.
+     * Sortiert die Movie-Liste und aktualisiert den Button-Text.
      */
     public void sortMovies() {
         sortState = sortState.next();
@@ -233,10 +250,10 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Sets the movie list to display.
+     * Setzt die interne Movie-Liste auf die übergebene Liste.
      *
-     * @param movies List of movies to display
-     * @throws IllegalArgumentException if movies is null
+     * @param movies Liste von Movie-Objekten, darf nicht null sein
+     * @throws IllegalArgumentException wenn movies null ist
      */
     public void setMovieList(List<Movie> movies) {
         if (movies == null) {
@@ -247,10 +264,32 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Finds the most popular actor in a list of movies.
+     * Wechselt zur Watchlist-Ansicht; meldet davor den aktuellen Controller ab.
+     */
+    private void switchToWatchlistView() {
+        WatchlistRepository.getInstance().removeObserver(this);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("watchlist-view.fxml"));
+            Scene scene = new Scene(loader.load(), 800, 600);
+            Stage stage = (Stage) watchlistBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            showError(
+                    movieListView.getScene().getWindow(),
+                    "Load Error",
+                    "Could not open watchlist view",
+                    e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Ermittelt den populärsten Schauspieler einer Liste von Movies.
      *
-     * @param movies List of movies to search through
-     * @return The name of the most popular actor, or null if no movies are provided
+     * @param movies Liste von Movie-Objekten
+     * @return Name des Schauspielers mit den meisten Auftritten oder null
      */
     public static String getMostPopularActor(List<Movie> movies) {
         return movies.stream()
@@ -263,10 +302,10 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Finds the length of the longest movie title in a list of movies.
+     * Ermittelt die Länge des längsten Filmtitels in einer Liste.
      *
-     * @param movies List of movies to search through
-     * @return The length of the longest title, or 0 if no movies are provided
+     * @param movies Liste von Movie-Objekten
+     * @return Länge des längsten Titels oder 0
      */
     public static int getLongestMovieTitle(List<Movie> movies) {
         return movies.stream()
@@ -276,11 +315,11 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Counts the number of movies from a specific director.
+     * Zählt, wie viele Filme eines bestimmten Regisseurs in der Liste sind.
      *
-     * @param movies   List of movies to search through
-     * @param director Name of the director to count movies for
-     * @return Number of movies by the specified director
+     * @param movies   Liste von Movie-Objekten
+     * @param director Name des Regisseurs
+     * @return Anzahl der Filme dieses Regisseurs
      */
     public static long countMoviesFrom(List<Movie> movies, String director) {
         return movies.stream()
@@ -289,34 +328,16 @@ public class HomeController implements Initializable {
     }
 
     /**
-     * Gets movies released between two years.
+     * Liefert alle Filme, die zwischen zwei Jahren veröffentlicht wurden.
      *
-     * @param movies    List of movies to search through
-     * @param startYear Start year (inclusive)
-     * @param endYear   End year (inclusive)
-     * @return List of movies released between the specified years
+     * @param movies    Liste von Movie-Objekten
+     * @param startYear Startjahr (inklusive)
+     * @param endYear   Endjahr (inklusive)
+     * @return Liste der Filme in diesem Zeitraum
      */
     public static List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
         return movies.stream()
                 .filter(movie -> movie.getReleaseYear() >= startYear && movie.getReleaseYear() <= endYear)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Switches to the watchlist view.
-     */
-    private void switchToWatchlistView() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("watchlist-view.fxml"));
-            Scene scene = new Scene(loader.load(), 800, 600);
-            Stage stage = (Stage) watchlistBtn.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            showError(movieListView.getScene().getWindow(),
-                    "Load Error",
-                    "Could not open watchlist view",
-                    e.getMessage());
-        }
     }
 }

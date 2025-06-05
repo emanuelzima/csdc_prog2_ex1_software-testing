@@ -12,4 +12,13 @@ public class AlertUtility {
         alert.setContentText(content);
         alert.showAndWait();
     }
+
+    public static void showInfo(Window owner, String title, String header, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.initOwner(owner);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
 }

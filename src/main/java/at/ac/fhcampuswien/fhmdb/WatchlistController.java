@@ -2,6 +2,8 @@ package at.ac.fhcampuswien.fhmdb;
 
 import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
 import at.ac.fhcampuswien.fhmdb.models.*;
+import at.ac.fhcampuswien.fhmdb.models.WatchlistStatus;
+import at.ac.fhcampuswien.fhmdb.observer.Observer;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -13,36 +15,33 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ResourceBundle;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
+import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showInfo;
 
 /**
- * Controller class for the watchlist view.
- * This class handles the functionality for displaying and managing the user's watchlist,
- * including removing movies from the watchlist and switching back to the main view.
+ * Controller-Klasse für die Watchlist-Ansicht.
+ * Implementiert Observer, um Benachrichtigungen vom WatchlistRepository zu erhalten.
  */
-public class WatchlistController implements Initializable {
+public class WatchlistController implements Initializable, Observer {
 
-    @FXML
-    public JFXListView<Movie> movieListView;
-
-    @FXML
-    public JFXButton homeBtn;
+    @FXML public JFXListView<Movie> movieListView;
+    @FXML public JFXButton homeBtn;
 
     private final ObservableList<Movie> watchlistMovies = FXCollections.observableArrayList();
 
     /**
-     * Initializes the controller and loads the watchlist data.
-     * @param url The location used to resolve relative paths for the root object
-     * @param resourceBundle The resources used to localize the root object
+     * Initialisiert den Controller, lädt die Watchlist-Filme
+     * und meldet sich beim WatchlistRepository als Observer an.
+     *
+     * @param url            Der Pfad zur FXML-Ressource
+     * @param resourceBundle Ressourcen für Internationalisierung
      */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -52,89 +51,128 @@ public class WatchlistController implements Initializable {
 
             List<WatchlistMovieEntity> watchlistEntities = watchlistRepo.getAllWatchlistMovies();
             List<Movie> movies = watchlistEntities.stream()
-                .map(watchlistEntity -> {
-                    try {
-                        List<MovieEntity> movieEntities = movieRepo.getMoviesByApiId(watchlistEntity.getApiId());
-                        if (!movieEntities.isEmpty()) {
-                            MovieEntity movieEntity = movieEntities.get(0);
-                            return new Movie(
-                                movieEntity.getApiId(),
-                                movieEntity.getTitle(),
-                                movieEntity.getDescription(),
-                                Arrays.stream(movieEntity.getGenres().split(","))
-                                    .map(Genre::valueOf)
-                                    .collect(Collectors.toList()),
-                                movieEntity.getReleaseYear(),
-                                movieEntity.getImgUrl(),
-                                movieEntity.getLengthInMinutes(),
-                                new ArrayList<>(),
-                                new ArrayList<>(),
-                                new ArrayList<>(),
-                                movieEntity.getRating()
+                    .map(watchlistEntity -> {
+                        try {
+                            List<MovieEntity> movieEntities = movieRepo.getMoviesByApiId(watchlistEntity.getApiId());
+                            if (!movieEntities.isEmpty()) {
+                                MovieEntity movieEntity = movieEntities.get(0);
+                                return new Movie(
+                                        movieEntity.getApiId(),
+                                        movieEntity.getTitle(),
+                                        movieEntity.getDescription(),
+                                        Arrays.stream(movieEntity.getGenres().split(","))
+                                                .map(Genre::valueOf)
+                                                .collect(Collectors.toList()),
+                                        movieEntity.getReleaseYear(),
+                                        movieEntity.getImgUrl(),
+                                        movieEntity.getLengthInMinutes(),
+                                        new ArrayList<>(),
+                                        new ArrayList<>(),
+                                        new ArrayList<>(),
+                                        movieEntity.getRating()
+                                );
+                            }
+                        } catch (DatabaseException e) {
+                            showError(
+                                    movieListView.getScene().getWindow(),
+                                    "Database Error",
+                                    "Failed to load movie details",
+                                    e.getMessage()
                             );
                         }
-                    } catch (DatabaseException e) {
-                        showError(movieListView.getScene().getWindow(),
-                                "Database Error",
-                                "Failed to load movie details",
-                                e.getMessage());
-                    }
-                    return null;
-                })
-                .filter(movie -> movie != null)
-                .collect(Collectors.toList());
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
 
-            // Clear existing movies and add all movies from watchlist
             watchlistMovies.clear();
             watchlistMovies.addAll(movies);
             movieListView.setItems(watchlistMovies);
             movieListView.setCellFactory(_ -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
+
+            watchlistRepo.addObserver(this);
+
         } catch (DatabaseException e) {
-            showError(movieListView.getScene().getWindow(),
+            showError(
+                    movieListView.getScene().getWindow(),
                     "Database Error",
                     "Failed to load watchlist",
-                    e.getMessage());
+                    e.getMessage()
+            );
         }
+
         homeBtn.setOnAction(_ -> switchToHomeView());
     }
 
     /**
-     * Event handler for removing a movie from the watchlist.
+     * Event-Handler für den "Remove from Watchlist"-Button in jeder MovieCell.
+     * Entfernt Filme aus DB und UI. Meldung erfolgt über update(...).
      */
-    private final ClickEventHandler<Movie> onRemoveFromWatchlistClicked = (clickedMovie) -> {
+    private final ClickEventHandler<Movie> onRemoveFromWatchlistClicked = clickedMovie -> {
         try {
             WatchlistRepository repo = WatchlistRepository.getInstance();
             List<WatchlistMovieEntity> watchlistEntities = repo.getWatchlistMoviesByApiId(clickedMovie.getId());
-            
+
             if (!watchlistEntities.isEmpty()) {
-                // Remove all instances from database
                 for (WatchlistMovieEntity entity : watchlistEntities) {
                     repo.removeFromWatchlist(entity);
                 }
-                System.out.println(clickedMovie.getTitle() + " was removed from watchlist.");
-                
-                // Remove all instances from UI
                 watchlistMovies.removeIf(movie -> movie.getId().equals(clickedMovie.getId()));
             } else {
                 showError(
-                    movieListView.getScene().getWindow(),
-                    "Remove Error",
-                    "Movie not on watchlist",
-                    "Could not find " + clickedMovie.getTitle() + " in your watchlist."
+                        movieListView.getScene().getWindow(),
+                        "Remove Error",
+                        "Movie not on watchlist",
+                        "Der Film \"" + clickedMovie.getTitle() + "\" ist nicht in deiner Watchlist."
                 );
             }
         } catch (DatabaseException e) {
-            showError(movieListView.getScene().getWindow(),
+            showError(
+                    movieListView.getScene().getWindow(),
                     "Database Error",
                     "Failed to remove movie from watchlist",
-                    e.getMessage());
+                    e.getMessage()
+            );
         }
     };
 
     /**
-     * Switches back to the main movie list view.
+     * Wird aufgerufen, wenn das WatchlistRepository eine Benachrichtigung sendet.
+     *
+     * @param status Der Typ des Ereignisses (NOT_FOUND, REMOVED_SUCCESS etc.)
+     * @param title  Der Titel des betroffenen Films
+     */
+    @Override
+    public void update(WatchlistStatus status, String title) {
+        Window parentWindow = movieListView.getScene().getWindow();
+        switch (status) {
+            case NOT_FOUND:
+                showError(
+                        parentWindow,
+                        "Watchlist Status Info",
+                        "Film nicht gefunden",
+                        "\"" + title + "\" war nicht in der Watchlist."
+                );
+                break;
+            case REMOVED_SUCCESS:
+                showInfo(
+                        parentWindow,
+                        "Watchlist Status Info",
+                        "Film entfernt",
+                        "\"" + title + "\" wurde aus der Watchlist entfernt."
+                );
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Wechselt zurück zur Haupt-Ansicht; meldet davor den aktuellen Controller ab.
      */
     private void switchToHomeView() {
+        WatchlistRepository.getInstance().removeObserver(this);
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("home-view.fxml"));
             Scene scene = new Scene(loader.load(), 800, 600);
@@ -142,10 +180,12 @@ public class WatchlistController implements Initializable {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            showError(movieListView.getScene().getWindow(),
+            showError(
+                    movieListView.getScene().getWindow(),
                     "Load Error",
                     "Could not open home view",
-                    e.getMessage());
+                    e.getMessage()
+            );
         }
     }
 }
