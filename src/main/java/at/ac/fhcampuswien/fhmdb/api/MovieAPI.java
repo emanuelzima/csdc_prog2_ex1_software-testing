@@ -9,7 +9,6 @@ import okhttp3.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class MovieAPI {
     private static final String BASE_URL = "https://prog2.fh-campuswien.ac.at/movies";
@@ -17,24 +16,13 @@ public class MovieAPI {
 
     // Ruft die API mit optionalen Parametern auf und liefert eine Liste von Movies zurück
     public static List<Movie> getMovies(String query, String genre, String releaseYear, String ratingFrom) throws MovieApiException {
-        // 1) URL dynamisch aufbauen
-        HttpUrl.Builder urlBuilder = Objects.requireNonNull(HttpUrl.parse(BASE_URL)).newBuilder();
-
-        if (query != null && !query.isBlank()) {
-            urlBuilder.addQueryParameter("query", query);
-        }
-        if (genre != null && !genre.isBlank()) {
-            urlBuilder.addQueryParameter("genre", genre);
-        }
-        if (releaseYear != null && !releaseYear.isBlank()) {
-            urlBuilder.addQueryParameter("releaseYear", releaseYear);
-        }
-        if (ratingFrom != null && !ratingFrom.isBlank()) {
-            urlBuilder.addQueryParameter("ratingFrom", ratingFrom);
-        }
-
-        // URL bauen
-        String finalUrl = urlBuilder.build().toString();
+        // 1) URL mit Builder zusammenstellen
+        String finalUrl = new MovieApiRequestBuilder(BASE_URL)
+                .query(query)
+                .genre(genre)
+                .releaseYear(releaseYear)
+                .ratingFrom(ratingFrom)
+                .build();
 
         // 2) Request vorbereiten
         OkHttpClient client = new OkHttpClient();
@@ -56,13 +44,13 @@ public class MovieAPI {
             String jsonBody = response.body().string();
 
             // 5) JSON-String per Gson in eine Liste von Movies parsen
-            List<Movie> movies = new Gson().fromJson(jsonBody, new TypeToken<List<Movie>>(){}.getType());
+            List<Movie> movies = new Gson().fromJson(jsonBody, new TypeToken<List<Movie>>() {
+            }.getType());
             if (movies == null) {
                 return new ArrayList<>();
             }
             return movies;
-        }catch (IOException e)
-        {
+        } catch (IOException e) {
             throw new MovieApiException(e);
         }
     }

@@ -4,6 +4,8 @@ import at.ac.fhcampuswien.fhmdb.api.MovieAPI;
 import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
 import at.ac.fhcampuswien.fhmdb.exceptions.MovieApiException;
 import at.ac.fhcampuswien.fhmdb.models.*;
+import at.ac.fhcampuswien.fhmdb.models.sorting.SortState;
+import at.ac.fhcampuswien.fhmdb.models.sorting.UnsortedState;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -17,12 +19,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+
 import static at.ac.fhcampuswien.fhmdb.ui.AlertUtility.showError;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.Comparator;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -66,11 +68,12 @@ public class HomeController implements Initializable {
 
     public List<Movie> allMovies;
     public final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
-    public SortedState sortedState;
+    private SortState sortState = new UnsortedState();
 
     /**
      * Initializes the controller and sets up the UI components.
-     * @param url The location used to resolve relative paths for the root object
+     *
+     * @param url            The location used to resolve relative paths for the root object
      * @param resourceBundle The resources used to localize the root object
      */
     @Override
@@ -102,16 +105,16 @@ public class HomeController implements Initializable {
                 // Save movies to database
                 for (Movie movie : allMovies) {
                     MovieEntity entity = new MovieEntity(
-                        movie.getId(),
-                        movie.getTitle(),
-                        movie.getDescription(),
-                        movie.getGenres().stream()
-                            .map(Genre::name)
-                            .collect(Collectors.joining(",")),
-                        movie.getReleaseYear(),
-                        movie.getImgUrl(),
-                        movie.getLengthInMinutes(),
-                        movie.getRating()
+                            movie.getId(),
+                            movie.getTitle(),
+                            movie.getDescription(),
+                            movie.getGenres().stream()
+                                    .map(Genre::name)
+                                    .collect(Collectors.joining(",")),
+                            movie.getReleaseYear(),
+                            movie.getImgUrl(),
+                            movie.getLengthInMinutes(),
+                            movie.getRating()
                     );
                     repo.addMovie(entity);
                 }
@@ -119,22 +122,22 @@ public class HomeController implements Initializable {
             } else {
                 System.out.println("Movies loaded from database.");
                 allMovies = cachedMovies.stream()
-                    .map(entity -> new Movie(
-                        entity.getApiId(),
-                        entity.getTitle(),
-                        entity.getDescription(),
-                        Arrays.stream(entity.getGenres().split(","))
-                            .map(Genre::valueOf)
-                            .collect(Collectors.toList()),
-                        entity.getReleaseYear(),
-                        entity.getImgUrl(),
-                        entity.getLengthInMinutes(),
-                        new ArrayList<>(),
-                        new ArrayList<>(),
-                        new ArrayList<>(),
-                        entity.getRating()
-                    ))
-                    .collect(Collectors.toList());
+                        .map(entity -> new Movie(
+                                entity.getApiId(),
+                                entity.getTitle(),
+                                entity.getDescription(),
+                                Arrays.stream(entity.getGenres().split(","))
+                                        .map(Genre::valueOf)
+                                        .collect(Collectors.toList()),
+                                entity.getReleaseYear(),
+                                entity.getImgUrl(),
+                                entity.getLengthInMinutes(),
+                                new ArrayList<>(),
+                                new ArrayList<>(),
+                                new ArrayList<>(),
+                                entity.getRating()
+                        ))
+                        .collect(Collectors.toList());
             }
         } catch (DatabaseException | MovieApiException e) {
             showError(movieListView.getScene().getWindow(),
@@ -149,9 +152,9 @@ public class HomeController implements Initializable {
             observableMovies.addAll(allMovies);
         }
 
-        sortedState = SortedState.NONE;
+        sortState = new UnsortedState();
         if (sortBtn != null) {
-            sortBtn.setText("Sort (asc)");
+            sortBtn.setText(sortState.getButtonLabel());
         }
     }
 
@@ -196,10 +199,11 @@ public class HomeController implements Initializable {
 
     /**
      * Applies all filters to the movie list.
-     * @param query Search query
-     * @param genre Selected genre
+     *
+     * @param query       Search query
+     * @param genre       Selected genre
      * @param releaseYear Release year filter
-     * @param rating Rating filter
+     * @param rating      Rating filter
      */
     public void applyAllFilters(String query, Genre genre, String releaseYear, String rating) {
         try {
@@ -223,19 +227,14 @@ public class HomeController implements Initializable {
      * Sorts the movie list by title in ascending or descending order.
      */
     public void sortMovies() {
-        if (sortedState == SortedState.NONE || sortedState == SortedState.DESCENDING) {
-            observableMovies.sort(Comparator.comparing(Movie::getTitle));
-            sortedState = SortedState.ASCENDING;
-            sortBtn.setText("Sort (desc)");
-        } else {
-            observableMovies.sort(Comparator.comparing(Movie::getTitle).reversed());
-            sortedState = SortedState.DESCENDING;
-            sortBtn.setText("Sort (asc)");
-        }
+        sortState = sortState.next();
+        sortState.sort(observableMovies);
+        sortBtn.setText(sortState.getButtonLabel());
     }
 
     /**
      * Sets the movie list to display.
+     *
      * @param movies List of movies to display
      * @throws IllegalArgumentException if movies is null
      */
@@ -249,6 +248,7 @@ public class HomeController implements Initializable {
 
     /**
      * Finds the most popular actor in a list of movies.
+     *
      * @param movies List of movies to search through
      * @return The name of the most popular actor, or null if no movies are provided
      */
@@ -264,6 +264,7 @@ public class HomeController implements Initializable {
 
     /**
      * Finds the length of the longest movie title in a list of movies.
+     *
      * @param movies List of movies to search through
      * @return The length of the longest title, or 0 if no movies are provided
      */
@@ -276,7 +277,8 @@ public class HomeController implements Initializable {
 
     /**
      * Counts the number of movies from a specific director.
-     * @param movies List of movies to search through
+     *
+     * @param movies   List of movies to search through
      * @param director Name of the director to count movies for
      * @return Number of movies by the specified director
      */
@@ -288,9 +290,10 @@ public class HomeController implements Initializable {
 
     /**
      * Gets movies released between two years.
-     * @param movies List of movies to search through
+     *
+     * @param movies    List of movies to search through
      * @param startYear Start year (inclusive)
-     * @param endYear End year (inclusive)
+     * @param endYear   End year (inclusive)
      * @return List of movies released between the specified years
      */
     public static List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
