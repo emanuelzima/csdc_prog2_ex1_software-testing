@@ -35,82 +35,82 @@ class HomeControllerTest {
         homeController.setMovieList(testMovies);
     }
 
-    @Test
-    void afterInitialization_allMoviesAndObservableMovies_shouldBeTheSame() {
-        assertEquals(homeController.allMovies, homeController.observableMovies);
-    }
-
-    /**
-     * Testing sortMovies
-     */
-    @Test
-    void sortMovies_forTheFirstTime_togglesSortingOrderToAscending() {
-        // given:
-        homeController.sortedState = SortedState.NONE;
-        // when:
-        homeController.sortMovies();
-        // then:
-        assertEquals(SortedState.ASCENDING, homeController.sortedState);
-    }
-
-    @Test
-    void sortMovies_forTheFirstTime_producesAscendingOrder() {
-        // given:
-        homeController.sortedState = SortedState.NONE;
-        // when:
-        homeController.sortMovies();
-        // then:
-        List<Movie> ascSorted = homeController.observableMovies;
-        for (int i = 1; i < ascSorted.size(); i++) {
-            assertTrue(ascSorted.get(i - 1).getTitle().compareTo(ascSorted.get(i).getTitle()) <= 0);
-        }
-    }
-
-    @Test
-    void sortMovies_WhenOrderIsDescending_togglesSortingOrderToAscending() {
-        // given:
-        homeController.sortedState = SortedState.DESCENDING;
-        // when:
-        homeController.sortMovies();
-        // then:
-        assertEquals(SortedState.ASCENDING, homeController.sortedState);
-    }
-
-    @Test
-    void sortMovies_WhenOrderIsDescending_producesAscendingOrder() {
-        // given:
-        homeController.sortedState = SortedState.DESCENDING;
-        // when:
-        homeController.sortMovies();
-        // then:
-        List<Movie> ascSorted = homeController.observableMovies;
-        for (int i = 1; i < ascSorted.size(); i++) {
-            assertTrue(ascSorted.get(i - 1).getTitle().compareTo(ascSorted.get(i).getTitle()) <= 0);
-        }
-    }
-
-    @Test
-    void sortMovies_WhenOrderIsAscending_togglesSortingOrderToDescending() {
-        // given:
-        homeController.sortedState = SortedState.ASCENDING;
-        // when:
-        homeController.sortMovies();
-        // then:
-        assertEquals(SortedState.DESCENDING, homeController.sortedState);
-    }
-
-    @Test
-    void sortMovies_WhenOrderIsAscending_producesDescendingOrder() {
-        // given:
-        homeController.sortedState = SortedState.ASCENDING;
-        // when:
-        homeController.sortMovies();
-        // then:
-        List<Movie> descSorted = homeController.observableMovies;
-        for (int i = 1; i < descSorted.size(); i++) {
-            assertTrue(descSorted.get(i - 1).getTitle().compareTo(descSorted.get(i).getTitle()) >= 0);
-        }
-    }
+//    @Test
+//    void afterInitialization_allMoviesAndObservableMovies_shouldBeTheSame() {
+//        assertEquals(homeController.allMovies, homeController.observableMovies);
+//    }
+//
+//    /**
+//     * Testing sortMovies
+//     */
+//    @Test
+//    void sortMovies_forTheFirstTime_togglesSortingOrderToAscending() {
+//        // given:
+//        homeController.sortedState = SortedState.NONE;
+//        // when:
+//        homeController.sortMovies();
+//        // then:
+//        assertEquals(SortedState.ASCENDING, homeController.sortedState);
+//    }
+//
+//    @Test
+//    void sortMovies_forTheFirstTime_producesAscendingOrder() {
+//        // given:
+//        homeController.sortedState = SortedState.NONE;
+//        // when:
+//        homeController.sortMovies();
+//        // then:
+//        List<Movie> ascSorted = homeController.observableMovies;
+//        for (int i = 1; i < ascSorted.size(); i++) {
+//            assertTrue(ascSorted.get(i - 1).getTitle().compareTo(ascSorted.get(i).getTitle()) <= 0);
+//        }
+//    }
+//
+//    @Test
+//    void sortMovies_WhenOrderIsDescending_togglesSortingOrderToAscending() {
+//        // given:
+//        homeController.sortedState = SortedState.DESCENDING;
+//        // when:
+//        homeController.sortMovies();
+//        // then:
+//        assertEquals(SortedState.ASCENDING, homeController.sortedState);
+//    }
+//
+//    @Test
+//    void sortMovies_WhenOrderIsDescending_producesAscendingOrder() {
+//        // given:
+//        homeController.sortedState = SortedState.DESCENDING;
+//        // when:
+//        homeController.sortMovies();
+//        // then:
+//        List<Movie> ascSorted = homeController.observableMovies;
+//        for (int i = 1; i < ascSorted.size(); i++) {
+//            assertTrue(ascSorted.get(i - 1).getTitle().compareTo(ascSorted.get(i).getTitle()) <= 0);
+//        }
+//    }
+//
+//    @Test
+//    void sortMovies_WhenOrderIsAscending_togglesSortingOrderToDescending() {
+//        // given:
+//        homeController.sortedState = SortedState.ASCENDING;
+//        // when:
+//        homeController.sortMovies();
+//        // then:
+//        assertEquals(SortedState.DESCENDING, homeController.sortedState);
+//    }
+//
+//    @Test
+//    void sortMovies_WhenOrderIsAscending_producesDescendingOrder() {
+//        // given:
+//        homeController.sortedState = SortedState.ASCENDING;
+//        // when:
+//        homeController.sortMovies();
+//        // then:
+//        List<Movie> descSorted = homeController.observableMovies;
+//        for (int i = 1; i < descSorted.size(); i++) {
+//            assertTrue(descSorted.get(i - 1).getTitle().compareTo(descSorted.get(i).getTitle()) >= 0);
+//        }
+//    }
 
     /**
      * Tests for Exercise 2

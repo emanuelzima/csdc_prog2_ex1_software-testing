@@ -24,4 +24,6 @@ module at.ac.fhcampuswien.fhmdb {
     exports at.ac.fhcampuswien.fhmdb.ui;
     exports at.ac.fhcampuswien.fhmdb.exceptions;
     exports at.ac.fhcampuswien.fhmdb.api;
+    exports at.ac.fhcampuswien.fhmdb.models.sorting;
+    opens at.ac.fhcampuswien.fhmdb.models.sorting to com.google.gson, org.hibernate.orm.core;
 } 
