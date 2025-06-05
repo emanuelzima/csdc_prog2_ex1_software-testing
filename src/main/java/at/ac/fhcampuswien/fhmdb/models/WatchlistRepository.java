@@ -8,12 +8,28 @@ import java.util.Optional;
  * Repository class for managing watchlist data in the database.
  * This class encapsulates all database operations for the watchlist and provides methods
  * for adding, removing, and retrieving movies from the watchlist.
+ * Implements the Singleton pattern to ensure only one instance exists.
  */
 public class WatchlistRepository {
+    private static WatchlistRepository instance;
     private final Database database;
 
-    public WatchlistRepository() {
+    /**
+     * Private constructor to prevent direct instantiation.
+     */
+    private WatchlistRepository() {
         this.database = Database.getInstance();
+    }
+
+    /**
+     * Gets the singleton instance of WatchlistRepository.
+     * @return The singleton instance
+     */
+    public static synchronized WatchlistRepository getInstance() {
+        if (instance == null) {
+            instance = new WatchlistRepository();
+        }
+        return instance;
     }
 
     /**

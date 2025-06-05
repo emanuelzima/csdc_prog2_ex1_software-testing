@@ -47,8 +47,8 @@ public class WatchlistController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            WatchlistRepository watchlistRepo = new WatchlistRepository();
-            MovieRepository movieRepo = new MovieRepository();
+            WatchlistRepository watchlistRepo = WatchlistRepository.getInstance();
+            MovieRepository movieRepo = MovieRepository.getInstance();
 
             List<WatchlistMovieEntity> watchlistEntities = watchlistRepo.getAllWatchlistMovies();
             List<Movie> movies = watchlistEntities.stream()
@@ -101,7 +101,7 @@ public class WatchlistController implements Initializable {
      */
     private final ClickEventHandler<Movie> onRemoveFromWatchlistClicked = (clickedMovie) -> {
         try {
-            WatchlistRepository repo = new WatchlistRepository();
+            WatchlistRepository repo = WatchlistRepository.getInstance();
             List<WatchlistMovieEntity> watchlistEntities = repo.getWatchlistMoviesByApiId(clickedMovie.getId());
             
             if (!watchlistEntities.isEmpty()) {

@@ -8,15 +8,28 @@ import java.util.Optional;
  * Repository class for managing movie data in the database.
  * This class encapsulates all database operations for movies and provides methods
  * for adding, retrieving, and managing movies.
+ * Implements the Singleton pattern to ensure only one instance exists.
  */
 public class MovieRepository {
+    private static MovieRepository instance;
     private final Database database;
 
     /**
-     * Constructor initializes the repository with the provided database.
+     * Private constructor to prevent direct instantiation.
      */
-    public MovieRepository() {
+    private MovieRepository() {
         this.database = Database.getInstance();
+    }
+
+    /**
+     * Gets the singleton instance of MovieRepository.
+     * @return The singleton instance
+     */
+    public static synchronized MovieRepository getInstance() {
+        if (instance == null) {
+            instance = new MovieRepository();
+        }
+        return instance;
     }
 
     /**

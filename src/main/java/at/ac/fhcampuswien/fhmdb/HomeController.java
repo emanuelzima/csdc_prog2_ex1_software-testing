@@ -94,7 +94,7 @@ public class HomeController implements Initializable {
      */
     public void initializeState() {
         try {
-            MovieRepository repo = new MovieRepository();
+            MovieRepository repo = MovieRepository.getInstance();
             List<MovieEntity> cachedMovies = repo.getAllMovies();
 
             if (cachedMovies.isEmpty()) {
@@ -161,7 +161,7 @@ public class HomeController implements Initializable {
     private final ClickEventHandler<Movie> onAddToWatchlistClicked = (clickedMovie) -> {
         try {
             WatchlistMovieEntity entity = new WatchlistMovieEntity(clickedMovie.getId());
-            WatchlistRepository repo = new WatchlistRepository();
+            WatchlistRepository repo = WatchlistRepository.getInstance();
             repo.addToWatchlist(entity);
             System.out.println(clickedMovie.getTitle() + " was added to watchlist.");
         } catch (DatabaseException e) {
