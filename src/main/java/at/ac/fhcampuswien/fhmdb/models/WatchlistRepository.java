@@ -13,7 +13,7 @@ import java.util.Optional;
  * Implementiert das Observable-Interface, um Observer über Änderungen zu informieren.
  */
 public class WatchlistRepository implements Observable {
-    private static WatchlistRepository instance;
+    private static volatile WatchlistRepository instance;
     private final Database database;
     private final List<Observer> observers = new ArrayList<>();
 
@@ -26,11 +26,18 @@ public class WatchlistRepository implements Observable {
      *
      * @return Die einzige Instanz von WatchlistRepository
      */
-    public static synchronized WatchlistRepository getInstance() {
-        if (instance == null) {
-            instance = new WatchlistRepository();
+    public static WatchlistRepository getInstance() {
+        WatchlistRepository result = instance;
+        if (result == null) {
+            synchronized (WatchlistRepository.class) {
+                result = instance;
+                if (result == null) {
+                    result = new WatchlistRepository();
+                    instance = result;
+                }
+            }
         }
-        return instance;
+        return result;
     }
 
     @Override

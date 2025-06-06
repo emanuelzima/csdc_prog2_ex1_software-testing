@@ -11,7 +11,7 @@ import java.util.Optional;
  * Implements the Singleton pattern to ensure only one instance exists.
  */
 public class MovieRepository {
-    private static MovieRepository instance;
+    private static volatile MovieRepository instance;
     private final Database database;
 
     /**
@@ -25,11 +25,18 @@ public class MovieRepository {
      * Gets the singleton instance of MovieRepository.
      * @return The singleton instance
      */
-    public static synchronized MovieRepository getInstance() {
-        if (instance == null) {
-            instance = new MovieRepository();
+    public static MovieRepository getInstance() {
+        MovieRepository result = instance;
+        if (result == null) {
+            synchronized (MovieRepository.class) {
+                result = instance;
+                if (result == null) {
+                    result = new MovieRepository();
+                    instance = result;
+                }
+            }
         }
-        return instance;
+        return result;
     }
 
     /**
