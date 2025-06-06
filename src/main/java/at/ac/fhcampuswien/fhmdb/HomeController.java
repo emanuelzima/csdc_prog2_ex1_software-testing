@@ -8,6 +8,7 @@ import at.ac.fhcampuswien.fhmdb.models.sorting.SortState;
 import at.ac.fhcampuswien.fhmdb.models.sorting.UnsortedState;
 import at.ac.fhcampuswien.fhmdb.models.WatchlistStatus;
 import at.ac.fhcampuswien.fhmdb.observer.Observer;
+import at.ac.fhcampuswien.fhmdb.patterns.Factory;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -50,6 +51,13 @@ public class HomeController implements Initializable, Observer {
     public List<Movie> allMovies;
     public final ObservableList<Movie> observableMovies = FXCollections.observableArrayList();
     private SortState sortState = new UnsortedState();
+
+
+    public HomeController()
+    {
+        System.out.println("HomeController-Konstruktor wurde aufgerufen");
+    }
+
 
     /**
      * Initialisiert den Controller, richtet die UI-Komponenten ein
@@ -271,6 +279,7 @@ public class HomeController implements Initializable, Observer {
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("watchlist-view.fxml"));
+            loader.setControllerFactory(Factory.getFactory());
             Scene scene = new Scene(loader.load(), 800, 600);
             Stage stage = (Stage) watchlistBtn.getScene().getWindow();
             stage.setScene(scene);
