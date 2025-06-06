@@ -53,10 +53,9 @@ public class WatchlistController implements Initializable, Observer {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            WatchlistRepository watchlistRepo = WatchlistRepository.getInstance();
             MovieRepository movieRepo = MovieRepository.getInstance();
 
-            List<WatchlistMovieEntity> watchlistEntities = watchlistRepo.getAllWatchlistMovies();
+            List<WatchlistMovieEntity> watchlistEntities = WatchlistRepository.getInstance().getAllWatchlistMovies();
             List<Movie> movies = watchlistEntities.stream()
                     .map(watchlistEntity -> {
                         try {
@@ -97,7 +96,8 @@ public class WatchlistController implements Initializable, Observer {
             movieListView.setItems(watchlistMovies);
             movieListView.setCellFactory(_ -> new MovieCell(onRemoveFromWatchlistClicked, "Remove"));
 
-            watchlistRepo.addObserver(this);
+            WatchlistRepository.getInstance().addObserver(this);
+
 
         } catch (DatabaseException e) {
             showError(
