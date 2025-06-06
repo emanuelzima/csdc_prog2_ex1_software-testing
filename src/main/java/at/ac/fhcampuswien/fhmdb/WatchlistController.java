@@ -4,6 +4,7 @@ import at.ac.fhcampuswien.fhmdb.exceptions.DatabaseException;
 import at.ac.fhcampuswien.fhmdb.models.*;
 import at.ac.fhcampuswien.fhmdb.models.WatchlistStatus;
 import at.ac.fhcampuswien.fhmdb.observer.Observer;
+import at.ac.fhcampuswien.fhmdb.patterns.Factory;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
@@ -35,6 +36,12 @@ public class WatchlistController implements Initializable, Observer {
     @FXML public JFXButton homeBtn;
 
     private final ObservableList<Movie> watchlistMovies = FXCollections.observableArrayList();
+
+    public WatchlistController()
+    {
+        System.out.println("WatchlistController-Konstruktor wurde aufgerufen");
+    }
+
 
     /**
      * Initialisiert den Controller, lädt die Watchlist-Filme
@@ -175,6 +182,7 @@ public class WatchlistController implements Initializable, Observer {
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("home-view.fxml"));
+            loader.setControllerFactory(Factory.getFactory());
             Scene scene = new Scene(loader.load(), 800, 600);
             Stage stage = (Stage) homeBtn.getScene().getWindow();
             stage.setScene(scene);
