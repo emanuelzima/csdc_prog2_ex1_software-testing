@@ -230,14 +230,15 @@ public class HomeController implements Initializable, Observer {
      */
     public void applyAllFilters(String query, Genre genre, String releaseYear, String rating) {
         try {
-            observableMovies.setAll(
-                    MovieAPI.getMovies(
-                            query,
-                            genre != null ? genre.name() : null,
-                            releaseYear,
-                            rating
-                    )
+            List<Movie> filteredMovies = MovieAPI.getMovies(
+                    query,
+                    genre != null ? genre.name() : null,
+                    releaseYear,
+                    rating
             );
+            observableMovies.setAll(filteredMovies);
+
+            sortState.sort(observableMovies);
         } catch (MovieApiException e) {
             showError(
                     movieListView.getScene().getWindow(),
